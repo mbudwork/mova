@@ -1,0 +1,48 @@
+{
+  "$schema": "Corrections to the approved Content Master. Applied by scripts/import-course-content.mjs after the workbook's own Lesson Map.",
+  "defect": "Lessons L03 and L04 are defined in the Lessons sheet but have no rows in Lesson Map, leaving two published lessons with no content.",
+  "rule": "Only phrase IDs that already exist in FINAL Phrases may appear here. No new German, no new translations, no trade content in CORE lessons, no safety-sensitive phrase as a primary target (it is not visible to users until safety review closes).",
+  "author": "PHASE 4 correction, 2026-08-23",
+  "rows": [
+    { "lesson_id": "L03", "phrase_id": "P0107", "order_no": 1, "role": "primary", "verb": "machen" },
+    { "lesson_id": "L03", "phrase_id": "P0111", "order_no": 2, "role": "primary", "verb": "machen" },
+    { "lesson_id": "L03", "phrase_id": "P0115", "order_no": 3, "role": "primary", "verb": "machen" },
+    { "lesson_id": "L03", "phrase_id": "P0031", "order_no": 4, "role": "primary", "verb": "holen" },
+    { "lesson_id": "L03", "phrase_id": "P0032", "order_no": 5, "role": "primary", "verb": "holen" },
+    { "lesson_id": "L03", "phrase_id": "P0033", "order_no": 6, "role": "primary", "verb": "holen" },
+    { "lesson_id": "L03", "phrase_id": "P0047", "order_no": 7, "role": "primary", "verb": "holen" },
+    { "lesson_id": "L03", "phrase_id": "P0048", "order_no": 8, "role": "primary", "verb": "bringen" },
+    { "lesson_id": "L03", "phrase_id": "P0102", "order_no": 9, "role": "primary", "verb": "bringen" },
+    { "lesson_id": "L03", "phrase_id": "P0026", "order_no": 10, "role": "primary", "verb": "machen (worker reply)" },
+
+    { "lesson_id": "L03", "phrase_id": "P0034", "order_no": 1, "role": "review_pool", "verb": "holen" },
+    { "lesson_id": "L03", "phrase_id": "P0035", "order_no": 2, "role": "review_pool", "verb": "holen" },
+    { "lesson_id": "L03", "phrase_id": "P0041", "order_no": 3, "role": "review_pool", "verb": "holen" },
+    { "lesson_id": "L03", "phrase_id": "P0042", "order_no": 4, "role": "review_pool", "verb": "bringen" },
+    { "lesson_id": "L03", "phrase_id": "P0112", "order_no": 5, "role": "review_pool", "verb": "machen" },
+    { "lesson_id": "L03", "phrase_id": "P0114", "order_no": 6, "role": "review_pool", "verb": "machen" },
+
+    { "lesson_id": "L04", "phrase_id": "P0049", "order_no": 1, "role": "primary", "verb": "stellen" },
+    { "lesson_id": "L04", "phrase_id": "P0069", "order_no": 2, "role": "primary", "verb": "stellen" },
+    { "lesson_id": "L04", "phrase_id": "P0079", "order_no": 3, "role": "primary", "verb": "stellen" },
+    { "lesson_id": "L04", "phrase_id": "P0050", "order_no": 4, "role": "primary", "verb": "legen" },
+    { "lesson_id": "L04", "phrase_id": "P0070", "order_no": 5, "role": "primary", "verb": "legen" },
+    { "lesson_id": "L04", "phrase_id": "P0080", "order_no": 6, "role": "primary", "verb": "legen" },
+
+    { "lesson_id": "L04", "phrase_id": "P0053", "order_no": 1, "role": "review_pool", "verb": "machen (placement context)" },
+    { "lesson_id": "L04", "phrase_id": "P0081", "order_no": 2, "role": "review_pool", "verb": "placement" },
+    { "lesson_id": "L04", "phrase_id": "P0071", "order_no": 3, "role": "review_pool", "verb": "placement" },
+    { "lesson_id": "L04", "phrase_id": "P0077", "order_no": 4, "role": "review_pool", "verb": "placement" },
+    { "lesson_id": "L04", "phrase_id": "P0078", "order_no": 5, "role": "review_pool", "verb": "placement" }
+  ],
+  "gaps": {
+    "note": "L04 receives six primary targets, not eight to ten, because the Content Master contains no more suitable phrases.",
+    "missing_verbs": [
+      "nehmen — vocabulary C004 (priority A) exists, but zero CORE phrases use it; the only nimm-phrases are FLIESEN P0285 and MAURER P0358, which cannot enter a CORE lesson",
+      "geben — vocabulary C005 (priority A) exists, zero phrases use it anywhere in the course",
+      "tragen — vocabulary C012 (priority A) exists, the only trag-phrase is MAURER P0329 'Trag den Mörtel auf.'",
+      "halten — vocabulary C009 (priority A) exists, the only phrase is P0190 'Abstand halten!', which is safety-sensitive and awaiting safety review, so it cannot be a primary target"
+    ],
+    "recommendation": "Add CORE phrases for nehmen, geben, tragen and a non-safety halten to the Content Master. Until then L04 is thinner than the other lessons."
+  }
+}

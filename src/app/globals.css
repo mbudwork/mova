@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+
+/* =============================================================================
+   Design tokens — Baustellen-Beschilderung
+   
+   Взято из немецкой строительной сигнальной системы, а не из SaaS-палитры:
+   бетонно-серый фон, чёрный текст, предупреждающий жёлтый (Warnzeichen) для
+   главного действия, синий Gebotszeichen для информации, красный для запрета
+   и ошибок. Светлый фон выбран сознательно: экран телефона на солнце читается
+   лучше тёмным текстом по светлому.
+   ========================================================================== */
+
+@theme {
+  --color-concrete: #edebe6;
+  --color-concrete-deep: #dedbd3;
+  --color-ink: #14161a;
+  --color-slate: #6b6f76;
+  --color-signal: #ffc300;
+  --color-signal-deep: #e0a800;
+  --color-blau: #1b4fa0;
+  --color-rot: #c1272d;
+  --color-gruen: #1f7a45;
+  --color-paper: #ffffff;
+
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --radius-tile: 14px;
+
+  /* Minimum comfortable target for a gloved thumb. */
+  --spacing-touch: 60px;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-concrete);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* Prevent horizontal overflow on narrow phones once and for all. */
+    overflow-x: hidden;
+  }
+
+  /* Keyboard focus must stay visible — hazard yellow is not enough contrast
+     on the yellow button, so focus uses the signage blue. */
+  :focus-visible {
+    outline: 3px solid var(--color-blau);
+    outline-offset: 2px;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  /* German phrases carry the product. They are always the largest thing on
+     screen, with slightly open tracking so an A0 learner can parse the word
+     boundaries of a language they cannot yet read fluently. */
+  .de-phrase {
+    font-size: clamp(1.75rem, 7vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .de-phrase-xl {
+    font-size: clamp(2.5rem, 11vw, 4rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* Eyebrow labels use the stencil-ish uppercase of site signage. */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-slate);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
