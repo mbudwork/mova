@@ -14,7 +14,8 @@
     "test:integration": "vitest run tests/integration",
     "types:generate": "node scripts/gen-types.mjs \"$DATABASE_URL\" > src/types/database.ts",
     "db:test": "sh scripts/db-test.sh",
-    "import:content": "node scripts/import-course-content.mjs content/deutsch_auf_der_baustelle_FINAL_v2.xlsx --db \"$DATABASE_URL\""
+    "import:content": "node scripts/import-course-content.mjs content/deutsch_auf_der_baustelle_FINAL_v2.xlsx --db \"$DATABASE_URL\"",
+    "audio:diagnostic": "node scripts/generate-diagnostic-audio.mjs --db \"$DATABASE_URL\""
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
