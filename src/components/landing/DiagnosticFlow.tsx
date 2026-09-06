@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { track } from '@/lib/analytics/client';
 import {
   computeAnswerState,
@@ -182,19 +182,42 @@ export function DiagnosticFlow({
 
 function AudioQuestion({ src, onPlay }: { src: string; onPlay: () => void }) {
   const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Reset the icon whenever the question changes (new `src`), so a leftover
+  // "■" from the previous question doesn't linger after next() swaps audio
+  // out from under a still-mounted-looking button.
+  useEffect(() => {
+    setPlaying(false);
+  }, [src]);
+
+  function toggle() {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (playing) {
+      audio.pause();
+      audio.currentTime = 0;
+      setPlaying(false);
+      return;
+    }
+
+    onPlay();
+    audio
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => setPlaying(false)); // e.g. browser blocked autoplay-like call
+  }
 
   return (
     <button
       type="button"
-      onClick={() => {
-        setPlaying((p) => !p);
-        onPlay();
-      }}
+      onClick={toggle}
       aria-label={playing ? 'Остановить' : 'Слушать команду'}
       className="flex h-[120px] w-[120px] items-center justify-center rounded-full bg-signal text-4xl text-ink shadow-[0_5px_0_var(--color-signal-deep)]"
     >
       {playing ? '■' : '▶'}
-      <audio src={src} preload="none" />
+      <audio ref={audioRef} src={src} preload="none" onEnded={() => setPlaying(false)} />
     </button>
   );
 }
