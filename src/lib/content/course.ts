@@ -1,12 +1,14 @@
 import 'server-only';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { buildOptions, type ExerciseOption } from '@/lib/exercise';
 
-export type LessonPhrase = {
+export type ExercisePhrase = {
   id: string;
   germanText: string;
   translation: string;
   pronunciation: string | null;
+  options: ExerciseOption[];
 };
 
 export type LessonView = {
@@ -14,7 +16,7 @@ export type LessonView = {
   slug: string;
   title: string;
   goal: string | null;
-  phrases: LessonPhrase[];
+  phrases: ExercisePhrase[];
 };
 
 export type CourseProgress = {
@@ -28,20 +30,13 @@ function pickByLocale<T extends { language_code: string }>(rows: T[], locale: st
   return rows.find((row) => row.language_code === locale) ?? rows[0] ?? null;
 }
 
-/**
- * Real numbers, computed from the content this user can actually reach.
- * The denominators come from the course itself — a user with two accessible
- * modules sees the size of those two modules, not an invented constant.
- */
 export async function getCourseProgress(): Promise<CourseProgress> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc('course_progress');
-
   const row = data?.[0];
   if (error || !row) {
     return { lessonsTotal: 0, lessonsCompleted: 0, phrasesTotal: 0, phrasesLearned: 0 };
   }
-
   return {
     lessonsTotal: row.lessons_total ?? 0,
     lessonsCompleted: row.lessons_completed ?? 0,
@@ -50,11 +45,6 @@ export async function getCourseProgress(): Promise<CourseProgress> {
   };
 }
 
-/**
- * Course order decides what comes next — module order, then lesson order,
- * with core content ahead of trade content. Nothing here is hardcoded, and
- * a profession module only appears for a user who selected that profession.
- */
 export async function getNextLessonSlug(): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc('next_lesson');
@@ -63,8 +53,14 @@ export async function getNextLessonSlug(): Promise<string | null> {
 }
 
 /**
- * Phrase filtering is RLS's job, not this query's: a draft phrase, or a
- * safety phrase without safety approval, is already absent from the result.
+ * A lesson is built ONLY from role='primary' phrases — the fix for the audit
+ * finding that getLesson() previously returned every lesson_phrases row
+ * regardless of role, silently doubling lesson length with untagged review
+ * material. The filter happens in TypeScript rather than as a PostgREST
+ * embedded-resource filter (`.eq('lesson_phrases.role', ...)`) because that
+ * embedded-filter behaviour has never been exercised against a live
+ * PostgREST instance in this project — see docs/COURSE_ENGINE_V1_REPORT.md.
+ * Filtering the fetched rows in JS is unambiguous regardless of that layer.
  */
 export async function getLesson(slug: string, locale: string): Promise<LessonView | null> {
   const supabase = await createSupabaseServerClient();
@@ -74,7 +70,7 @@ export async function getLesson(slug: string, locale: string): Promise<LessonVie
     .select(
       `id, slug,
        lesson_translations(title, goal, language_code),
-       lesson_phrases(order_index,
+       lesson_phrases(order_index, role,
          phrases(id, german_text,
            phrase_translations(text, pronunciation, language_code)))`,
     )
@@ -86,22 +82,29 @@ export async function getLesson(slug: string, locale: string): Promise<LessonVie
 
   const meta = pickByLocale(data.lesson_translations, locale);
 
-  const phrases: LessonPhrase[] = data.lesson_phrases
+  const primaryLinks = data.lesson_phrases
+    .filter((link) => link.role === 'primary')
     .slice()
-    .sort((a, b) => a.order_index - b.order_index)
-    .flatMap((link) => {
-      const phrase = link.phrases;
-      if (!phrase) return [];
-      const translation = pickByLocale(phrase.phrase_translations, locale);
-      return [
-        {
-          id: phrase.id,
-          germanText: phrase.german_text,
-          translation: translation?.text ?? '',
-          pronunciation: translation?.pronunciation ?? null,
-        },
-      ];
-    });
+    .sort((a, b) => a.order_index - b.order_index);
+
+  const source = primaryLinks.flatMap((link) => {
+    const phrase = link.phrases;
+    if (!phrase) return [];
+    const translation = pickByLocale(phrase.phrase_translations, locale);
+    return [
+      {
+        id: phrase.id,
+        germanText: phrase.german_text,
+        translation: translation?.text ?? '',
+        pronunciation: translation?.pronunciation ?? null,
+      },
+    ];
+  });
+
+  const phrases: ExercisePhrase[] = source.map((p) => ({
+    ...p,
+    options: buildOptions(p, source),
+  }));
 
   return {
     id: data.id,
@@ -120,6 +123,47 @@ export async function isLessonCompleted(lessonId: string, userId: string): Promi
     .eq('user_id', userId)
     .eq('lesson_id', lessonId)
     .maybeSingle();
-
   return data?.status === 'completed';
+}
+
+/**
+ * A review session: due-by-time or WEAK phrases for this user, capped at a
+ * small batch. Distractor options are built from the OTHER phrases in the
+ * same batch — real content, contextually mixed rather than same-lesson,
+ * which is appropriate since review phrases by definition come from
+ * different lessons.
+ */
+export async function getReviewSession(locale: string, limit = 8): Promise<ExercisePhrase[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: due, error: dueError } = await supabase.rpc('due_review_phrases', {
+    p_limit: limit,
+  });
+  if (dueError || !due || due.length === 0) return [];
+
+  const ids = due.map((d) => d.phrase_id).filter((id): id is string => id !== null);
+  if (ids.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('phrases')
+    .select('id, german_text, phrase_translations(text, pronunciation, language_code)')
+    .in('id', ids);
+
+  if (error || !data) return [];
+
+  // Preserve the due-queue's own order (weak-first, then oldest-overdue).
+  const order = new Map(ids.map((id, i) => [id, i]));
+  const source = data
+    .map((phrase) => {
+      const translation = pickByLocale(phrase.phrase_translations, locale);
+      return {
+        id: phrase.id,
+        germanText: phrase.german_text,
+        translation: translation?.text ?? '',
+        pronunciation: translation?.pronunciation ?? null,
+      };
+    })
+    .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+
+  return source.map((p) => ({ ...p, options: buildOptions(p, source) }));
 }

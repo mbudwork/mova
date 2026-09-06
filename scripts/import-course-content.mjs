@@ -17,6 +17,7 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import XLSX from 'xlsx';
 
@@ -733,7 +734,7 @@ export async function runImport({ xlsxPath, dbUrl, dryRun = false }) {
   return report;
 }
 
-const isDirectRun = process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop());
+const isDirectRun = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 
 if (isDirectRun) {
   const args = process.argv.slice(2);

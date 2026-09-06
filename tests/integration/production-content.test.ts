@@ -579,9 +579,12 @@ describe('progress on the real course', () => {
       (r) => mapped.has(r.Lesson) && ['CORE', 'ALL', 'TROCKENBAU'].includes(r.Track as string),
     );
     const reachableIds = new Set(reachable.map((r) => r.Lesson));
+    // Course Engine V1: phrases_total counts PRIMARY phrases only — the
+    // untagged review_pool rows are no longer treated as course content
+    // (see docs/COURSE_ENGINE_V1_REPORT.md, "review_pool" section).
     const distinctPhrases = new Set(
       [...sheet('Lesson Map'), ...corrections()]
-        .filter((r) => reachableIds.has(r.lesson_id))
+        .filter((r) => reachableIds.has(r.lesson_id) && r.role === 'primary')
         .map((r) => r.phrase_id),
     );
 
@@ -649,16 +652,22 @@ describe('progress on the real course', () => {
     expect(await next()).toBe('l05');
   });
 
-  it('seeds spaced repetition only for the lesson it completed', async () => {
+  it('records progress for exactly the phrases actually answered — not seeded automatically by completion', async () => {
+    // Course Engine V1: completing a lesson no longer bulk-seeds
+    // phrase_progress. Progress exists only for phrases this user answered
+    // via record_answer(), which is what the real scored exercise calls.
+    const primaryPhrases = await db.query(
+      "select phrase_id from lesson_phrases where lesson_id = $1 and role = 'primary'",
+      [firstLessonId],
+    );
+    for (const row of primaryPhrases.rows) {
+      await asUser(db, tbUser, (c) => c.query('select record_answer($1, true)', [row.phrase_id]));
+    }
+
     const seeded = await asUser(db, tbUser, (c) =>
       count(c, 'select 1 from phrase_progress where user_id = $1', [tbUser]),
     );
-    const inLesson = await count(
-      db,
-      'select 1 from lesson_phrases where lesson_id = $1',
-      [firstLessonId],
-    );
-    expect(seeded).toBe(inLesson);
+    expect(seeded).toBe(primaryPhrases.rows.length);
   });
 });
 

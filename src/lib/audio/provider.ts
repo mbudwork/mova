@@ -1,9 +1,9 @@
 /**
  * Audio provider abstraction.
  *
- * PHASE 2 shipped the UI contract only, with a mock that reports no audio
- * exists so the player renders an honest "аудио скоро" state instead of
- * playing silence.
+ * PHASE 2 ships the UI contract only. The mock does NOT play silence: a silent
+ * MP3 makes the listening UX impossible to evaluate, so the mock reports that
+ * no audio exists and the player renders an honest "аудио скоро" state.
  *
  * This is the PHASE 8 swap: ElevenLabsAudioProvider reads a pre-generated,
  * reviewed clip from `audio_assets` and hands back a short-lived signed URL.
@@ -67,7 +67,10 @@ class ElevenLabsAudioProvider implements AudioProvider {
       .limit(1)
       .maybeSingle();
 
-    if (error || !asset) return null;
+    // storage_path is nullable in the schema: a row can exist as a manifest
+    // entry before any file is generated. Such a row is not a playable track,
+    // so it is treated exactly like a missing one.
+    if (error || !asset?.storage_path) return null;
 
     // Short-lived on purpose: this is minted fresh per request, after the
     // caller has already re-checked entitlement + phrase visibility (see

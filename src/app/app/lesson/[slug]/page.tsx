@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { ButtonLink } from '@/components/ui/Button';
-import { LessonPlayer } from '@/components/LessonPlayer';
+import { LessonExerciseClient } from '@/components/LessonExerciseClient';
 import { Screen, ScreenHeader } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/States';
 import { requireOnboarded, hasFullAccess } from '@/lib/auth/guards';
@@ -19,8 +19,6 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
   await startLesson(lesson.id);
   const alreadyDone = await isLessonCompleted(lesson.id, profile.id);
 
-  // An empty phrase list on a published lesson means RLS filtered everything
-  // out — almost always a missing entitlement rather than missing content.
   if (lesson.phrases.length === 0) {
     const entitled = await hasFullAccess();
     return (
@@ -54,7 +52,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
       {alreadyDone ? (
         <p className="mb-4 text-sm font-bold text-gruen">Урок уже пройден — это повторение</p>
       ) : null}
-      <LessonPlayer lessonId={lesson.id} phrases={lesson.phrases} />
+      <LessonExerciseClient lessonId={lesson.id} phrases={lesson.phrases} />
     </Screen>
   );
 }

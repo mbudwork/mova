@@ -299,7 +299,18 @@ describe('lesson completion', () => {
     expect(rows[0].slug).toBe('grundbefehle-01');
   });
 
-  it('seeds spaced repetition for the lesson phrases', async () => {
+  it('records spaced-repetition progress only for phrases actually answered via record_answer', async () => {
+    // Course Engine V1: lesson completion itself no longer seeds
+    // phrase_progress in bulk. Progress is written the moment each phrase is
+    // answered in the real scored exercise — simulated here directly.
+    const lessonPhrases = await db.query(
+      "select phrase_id from lesson_phrases where lesson_id = $1 and role = 'primary'",
+      [firstLessonId],
+    );
+    for (const row of lessonPhrases.rows) {
+      await asUser(db, paidUser, (c) => c.query('select record_answer($1, true)', [row.phrase_id]));
+    }
+
     const rows = await asUser(db, paidUser, async (c) =>
       (
         await c.query(
@@ -310,7 +321,7 @@ describe('lesson completion', () => {
         )
       ).rows,
     );
-    expect(rows[0].n).toBe(3);
+    expect(rows[0].n).toBe(lessonPhrases.rows.length);
   });
 
   it('counts the completion in course progress', async () => {
@@ -361,32 +372,30 @@ describe('lesson completion', () => {
       expect(rows[0].lessons_completed).toBe(1);
     });
 
-    it('does not reset an existing phrase review schedule', async () => {
-      const phraseRow = await db.query(
-        `select pp.phrase_id, pp.next_review_at from phrase_progress pp
-           join lesson_phrases lp on lp.phrase_id = pp.phrase_id
-          where pp.user_id = $1 and lp.lesson_id = $2 limit 1`,
-        [paidUser, firstLessonId],
+    it('does not touch phrase_progress at all — that is now record_answer\'s job exclusively (Course Engine V1)', async () => {
+      // Manually simulate a phrase this lesson contains having already been
+      // scored via the real exercise mechanic, independent of lesson
+      // completion.
+      const { rows: lessonPhrase } = await db.query(
+        `select phrase_id from lesson_phrases where lesson_id = $1 and role = 'primary' limit 1`,
+        [firstLessonId],
       );
-      const { phrase_id, next_review_at } = phraseRow.rows[0];
+      const phraseId = lessonPhrase[0].phrase_id;
+      await asUser(db, paidUser, (c) => c.query('select record_answer($1, true)', [phraseId]));
 
-      // Simulate the review engine having already advanced this phrase.
-      await db.query(
-        `update phrase_progress
-            set state = 'mastered', correct_count = 5, next_review_at = now() + interval '30 days'
-          where user_id = $1 and phrase_id = $2`,
-        [paidUser, phrase_id],
+      const before = await db.query(
+        'select state, correct_count, next_review_at from phrase_progress where user_id=$1 and phrase_id=$2',
+        [paidUser, phraseId],
       );
 
+      await asUser(db, paidUser, (c) => c.query('select complete_lesson($1)', [firstLessonId]));
       await asUser(db, paidUser, (c) => c.query('select complete_lesson($1)', [firstLessonId]));
 
       const after = await db.query(
         'select state, correct_count, next_review_at from phrase_progress where user_id=$1 and phrase_id=$2',
-        [paidUser, phrase_id],
+        [paidUser, phraseId],
       );
-      expect(after.rows[0].state).toBe('mastered');
-      expect(after.rows[0].correct_count).toBe(5);
-      expect(after.rows[0].next_review_at).not.toEqual(next_review_at);
+      expect(after.rows[0]).toEqual(before.rows[0]);
     });
   });
 });
