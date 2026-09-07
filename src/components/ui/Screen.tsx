@@ -22,7 +22,7 @@ export function ScreenHeader({ title, back }: { title: string; back?: string }) 
           ←
         </Link>
       ) : null}
-      <h1 className="h-screen">{title}</h1>
+      <h1 className="h-title">{title}</h1>
     </header>
   );
 }
