@@ -37,8 +37,13 @@ if (!parsed.success) {
 const env = parsed.data;
 
 export const paymentsMode = env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET ? 'stripe' : 'mock';
-export const audioMode = env.ELEVENLABS_API_KEY ? 'elevenlabs' : 'mock';
-export const isDemoMode = paymentsMode === 'mock' || audioMode === 'mock';
+/**
+ * Describes whether NEW clips can be generated (scripts/generate-course-audio.mjs),
+ * not whether existing ones can be played. Playback reads finished files from
+ * storage and needs no key — see src/lib/audio/provider.ts.
+ */
+export const audioGenerationMode = env.ELEVENLABS_API_KEY ? 'elevenlabs' : 'unavailable';
+export const isDemoMode = paymentsMode === 'mock';
 export const isProduction = env.NODE_ENV === 'production';
 
 /**
@@ -50,8 +55,7 @@ const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
 
 if (isProduction && isBuildPhase && isDemoMode) {
   console.warn(
-    '[env] Building for production without Stripe/ElevenLabs keys. ' +
-      'Checkout stays disabled and audio falls back to the honest "not recorded yet" state.',
+    '[env] Building for production without Stripe credentials. Checkout stays disabled.',
   );
 }
 
@@ -85,11 +89,7 @@ if (
 }
 
 if (isProduction && !isBuildPhase && isDemoMode) {
-  console.warn(
-    `[env] Running in production with mock ${paymentsMode === 'mock' ? 'payments ' : ''}` +
-      `${audioMode === 'mock' ? 'audio' : ''}`.trim() +
-      '. Checkout is disabled and audio shows the not-recorded-yet state.',
-  );
+  console.warn('[env] Running in production with mock payments. Checkout is disabled.');
 }
 
 export { env };
