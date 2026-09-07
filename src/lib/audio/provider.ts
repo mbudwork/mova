@@ -1,19 +1,17 @@
 /**
- * Audio provider abstraction.
+ * Audio provider.
  *
- * PHASE 2 ships the UI contract only. The mock does NOT play silence: a silent
- * MP3 makes the listening UX impossible to evaluate, so the mock reports that
- * no audio exists and the player renders an honest "аудио скоро" state.
+ * Reads a pre-generated, reviewed clip from `audio_assets` and hands back a
+ * short-lived signed URL. It never calls the ElevenLabs API at request time —
+ * see the class comment below for why that matters, not just for cost.
  *
- * This is the PHASE 8 swap: ElevenLabsAudioProvider reads a pre-generated,
- * reviewed clip from `audio_assets` and hands back a short-lived signed URL.
- * It never calls the ElevenLabs API at request time — see the class comment
- * below for why that matters, not just for cost.
+ * A phrase with no approved asset returns null and the player renders the
+ * honest "ещё не записано" state. It never plays silence: a silent MP3 makes
+ * the listening UX impossible to evaluate.
  */
 
 import 'server-only';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
-import { audioMode } from '@/lib/config/env';
 
 export type AudioSpeed = 'slow' | 'normal' | 'natural';
 
@@ -24,17 +22,9 @@ export type AudioTrack = {
 };
 
 export interface AudioProvider {
-  readonly name: 'mock' | 'elevenlabs';
+  readonly name: 'elevenlabs';
   /** Returns null when no approved audio exists for this phrase yet. */
   getTrack(phraseId: string, speed?: AudioSpeed): Promise<AudioTrack | null>;
-}
-
-class MockAudioProvider implements AudioProvider {
-  readonly name = 'mock' as const;
-
-  async getTrack(): Promise<AudioTrack | null> {
-    return null;
-  }
 }
 
 /**
@@ -86,6 +76,21 @@ class ElevenLabsAudioProvider implements AudioProvider {
   }
 }
 
+/**
+ * Serving audio does NOT depend on ELEVENLABS_API_KEY.
+ *
+ * This used to read `audioMode === 'elevenlabs' ? real : mock`, which conflated
+ * two unrelated things: the key is needed to GENERATE clips (an offline script,
+ * run once), while playback only reads finished files out of Supabase storage.
+ * The result was that 564 generated, approved, uploaded clips were invisible to
+ * every learner because a key the request path never calls was absent from the
+ * deployment — every lesson claimed "аудио ещё не записано" while the audio sat
+ * in the bucket.
+ *
+ * The storage-backed provider already returns null for a phrase with no
+ * approved asset, so a course with no audio still degrades to the same honest
+ * empty state. There is nothing left for the key to gate here.
+ */
 export function createAudioProvider(): AudioProvider {
-  return audioMode === 'elevenlabs' ? new ElevenLabsAudioProvider() : new MockAudioProvider();
+  return new ElevenLabsAudioProvider();
 }
