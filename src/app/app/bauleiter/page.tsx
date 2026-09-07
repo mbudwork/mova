@@ -25,7 +25,7 @@ export default async function BauleiterPage() {
       </p>
 
       <div className="mt-10">
-        <ButtonLink href="/app" size="lg" variant="quiet">
+        <ButtonLink href="/app" size="lg" variant="ghost">
           На главную
         </ButtonLink>
       </div>

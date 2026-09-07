@@ -10,7 +10,7 @@ export default function OfflinePage() {
         <p className="text-slate">
           Уроки, которые ты уже открывал, доступны без сети. Новые загрузятся, когда появится связь.
         </p>
-        <ButtonLink href="/app" size="lg" variant="quiet">
+        <ButtonLink href="/app" size="lg" variant="ghost">
           К загруженным урокам
         </ButtonLink>
       </div>

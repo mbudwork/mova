@@ -41,8 +41,8 @@ export default async function FunnelPage({
             className={[
               'rounded-full border-2 px-4 py-2 text-sm font-bold',
               (locale ?? 'all') === option.value
-                ? 'border-ink bg-ink text-concrete'
-                : 'border-concrete-deep bg-paper',
+                ? 'border-ink bg-ink text-cream'
+                : 'border-cream-deep bg-paper',
             ].join(' ')}
           >
             {option.label}
@@ -69,7 +69,7 @@ export default async function FunnelPage({
             return (
               <section
                 key={`${row.utm_campaign ?? 'none'}-${row.landing_locale ?? 'unknown'}`}
-                className="rounded-[14px] bg-paper p-4"
+                className="card p-5"
               >
                 <h2 className="text-lg font-bold">
                   {row.utm_campaign ?? '(без кампании)'}{' '}
@@ -91,7 +91,7 @@ export default async function FunnelPage({
                       <dd className="flex flex-1 items-center gap-2">
                         <span
                           aria-hidden
-                          className="h-3 rounded-full bg-signal"
+                          className="h-3 rounded-full bg-gold"
                           style={{ width: `${Math.max(Number(percent), 2)}%` }}
                         />
                         <span className="text-sm font-bold tabular-nums">

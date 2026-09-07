@@ -68,7 +68,7 @@ export default async function HomePage() {
         <p className="mt-4 text-center">
           <a
             href="/app/check"
-            className="inline-block px-4 py-4 font-bold text-blau underline"
+            className="inline-block px-4 py-4 font-bold text-gold-deep underline"
           >
             Проверить мой уровень · около 2 минут
           </a>

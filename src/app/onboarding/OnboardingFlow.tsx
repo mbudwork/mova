@@ -27,8 +27,8 @@ function Choice({
   return (
     <label
       className={[
-        'flex min-h-[68px] cursor-pointer items-center gap-4 rounded-[14px] border-2 px-4 py-3 text-lg',
-        checked ? 'border-ink bg-signal font-bold' : 'border-concrete-deep bg-paper',
+        'flex min-h-[68px] cursor-pointer items-center gap-4 rounded-[18px] border-2 px-4 py-3 text-lg',
+        checked ? 'border-ink bg-gold font-bold' : 'border-cream-deep bg-paper',
       ].join(' ')}
     >
       <input {...input} checked={checked} className="sr-only" />
@@ -36,7 +36,7 @@ function Choice({
         aria-hidden
         className={[
           'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2',
-          checked ? 'border-ink bg-ink text-signal' : 'border-concrete-deep',
+          checked ? 'border-ink bg-ink text-gold-deep' : 'border-cream-deep',
         ].join(' ')}
       >
         {checked ? '✓' : ''}
@@ -105,14 +105,14 @@ export function OnboardingFlow({
           </div>
 
           {state?.error ? (
-            <p role="alert" className="mt-6 rounded-[14px] border-l-8 border-rot bg-paper p-4 font-bold">
+            <p role="alert" className="mt-6 notice notice-bad">
               {state.error}
             </p>
           ) : null}
 
           <div className="mt-8 space-y-3">
             <Submit />
-            <Button type="button" variant="quiet" onClick={() => setStep(0)}>
+            <Button type="button" variant="ghost" onClick={() => setStep(0)}>
               Назад
             </Button>
           </div>

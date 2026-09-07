@@ -1,4 +1,13 @@
-# OWNER REVIEW DEPLOYMENT
+# OWNER REVIEW DEPLOYMENT (архив)
+
+> **Устарело.** Актуальная инструкция — `docs/DEPLOY_V2.md`.
+>
+> Этот документ описывает первичный запуск на Vercel. Боевой деплой живёт на
+> Netlify (`netlify.toml`), база уже создана и заполнена, так что ни один шаг
+> отсюда повторять не нужно. `scripts/deploy-review.sh` тоже относится к
+> Vercel и к старому импортёру контента — оставлен ради логики создания
+> review-аккаунта (`scripts/create-review-user.mjs`), которая по-прежнему
+> рабочая.
 
 Всё, что можно было подготовить со стороны кода, подготовлено. Осталось то,
 что требует доступа к внешним сервисам.
@@ -84,7 +93,7 @@ Database → Connection pooling.
 
 | | |
 |---|---|
-| `vercel.json` | `X-Robots-Tag: noindex, nofollow, noarchive` на всех маршрутах |
+| `netlify.toml` | `X-Robots-Tag: noindex, nofollow, noarchive` на всех маршрутах |
 | `src/app/robots.ts` | `Disallow: /` — блокировка и через robots.txt, и через заголовок |
 | `scripts/create-review-user.mjs` | Обычный пользователь + entitlement через нормальную модель |
 | `scripts/deploy-review.sh` | Миграции → импорт → сверка → аккаунт → деплой |

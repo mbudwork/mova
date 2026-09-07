@@ -33,7 +33,7 @@ export function LessonExerciseClient({
 
   if (error) {
     return (
-      <p role="alert" className="rounded-[14px] border-l-8 border-rot bg-paper p-4 font-bold">
+      <p role="alert" className="notice notice-bad">
         {error}
       </p>
     );

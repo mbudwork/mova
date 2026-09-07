@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { track } from '@/lib/analytics/client';
 import { computeAnswerState, shouldRevealGerman } from '@/lib/diagnostic-flow';
@@ -23,6 +23,13 @@ import type { LandingCopy } from '@/lib/landing-copy';
 
 const GERMAN = 'Mach erst diese Wand fertig.';
 const CORRECT_TEXT_RU = 'Сначала закончи эту стену.';
+// Public file for this exact fixed demo phrase (same sentence as diagnostic
+// question #6) — safe to hardcode a public URL here since this widget is
+// shown to anonymous, logged-out visitors and always plays the same line.
+// Uses the public `diagnostic-audio` bucket, not the private course `audio`
+// bucket (which requires a signed URL + an authenticated learner).
+const DEMO_AUDIO_URL =
+  'https://vcayatyamthyzeycfshc.supabase.co/storage/v1/object/public/diagnostic-audio/diagnostic/06-P0112.mp3';
 const OPTIONS_RU = [
   { text: 'Сначала закончи эту стену.', correct: true },
   { text: 'Эту стену не трогай.', correct: false },
@@ -39,6 +46,8 @@ export function MovaMoment({
   variant?: 'hero' | 'showcase';
 }) {
   const [chosen, setChosen] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const state = computeAnswerState(chosen);
   const revealed = shouldRevealGerman(state);
 
@@ -49,22 +58,39 @@ export function MovaMoment({
     track('mini_test_answer', { correct, variant });
   }
 
+  function togglePlay() {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (playing) {
+      audio.pause();
+      audio.currentTime = 0;
+      setPlaying(false);
+      return;
+    }
+
+    track('mini_test_audio_play', { variant });
+    if (variant === 'hero') track('hero_demo_play', {});
+    audio
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => setPlaying(false));
+  }
+
   return (
-    <div className="rounded-[14px] bg-paper p-5">
+    <div className="card p-6">
       <p className="eyebrow">{copy.momentTitle}</p>
       <p className="mt-2 text-slate">{copy.momentPrompt}</p>
 
       <div className="mt-5 flex justify-center">
         <button
           type="button"
-          onClick={() => {
-            track('mini_test_audio_play', { variant });
-            if (variant === 'hero') track('hero_demo_play', {});
-          }}
-          aria-label={copy.momentPlay}
-          className="flex h-[104px] w-[104px] items-center justify-center rounded-full bg-signal text-4xl text-ink shadow-[0_5px_0_var(--color-signal-deep)] active:translate-y-[2px]"
+          onClick={togglePlay}
+          aria-label={playing ? 'Остановить' : copy.momentPlay}
+          className="listen-btn h-[104px] w-[104px] text-4xl"
         >
-          ▶
+          {playing ? '■' : '▶'}
+          <audio ref={audioRef} src={DEMO_AUDIO_URL} preload="none" onEnded={() => setPlaying(false)} />
         </button>
       </div>
 
@@ -86,12 +112,12 @@ export function MovaMoment({
               onClick={() => choose(option.text)}
               disabled={revealed}
               className={[
-                'flex min-h-[60px] w-full items-center gap-3 rounded-[14px] border-2 px-4 py-3 text-left text-lg leading-snug',
+                'flex min-h-[60px] w-full items-center gap-3 rounded-[18px] border-2 px-4 py-3 text-left text-lg leading-snug',
                 reveal
-                  ? 'border-gruen bg-gruen/10 font-bold'
+                  ? 'border-good bg-good/10 font-bold'
                   : isChosen
-                    ? 'border-rot bg-rot/10'
-                    : 'border-concrete-deep bg-concrete',
+                    ? 'border-bad bg-bad/10'
+                    : 'border-cream-deep bg-cream',
               ].join(' ')}
             >
               <span aria-hidden className="w-5 shrink-0 text-xl">
@@ -111,7 +137,7 @@ export function MovaMoment({
           <Link
             href={testHref}
             onClick={() => track('hero_test_click', { placement: 'moment' })}
-            className="mt-4 flex min-h-[60px] w-full items-center justify-center rounded-[14px] bg-signal px-5 text-lg font-bold text-ink"
+            className="mt-4 flex min-h-[60px] w-full items-center justify-center rounded-[18px] bg-gold px-5 text-lg font-bold text-ink"
           >
             {copy.momentCta}
           </Link>

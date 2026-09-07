@@ -17,7 +17,7 @@ export default async function SayPage() {
           type="search"
           disabled
           placeholder="закончился клей"
-          className="min-h-[68px] w-full rounded-[14px] border-2 border-concrete-deep bg-paper px-4 text-lg"
+          className="min-h-[68px] w-full rounded-[18px] border border-[var(--line-light)] bg-paper px-4 text-lg"
         />
       </label>
 

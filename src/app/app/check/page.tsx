@@ -22,7 +22,7 @@ export default async function CheckPage() {
       </p>
 
       <div className="mt-10 space-y-3">
-        <ButtonLink href="/app" size="lg" variant="quiet">
+        <ButtonLink href="/app" size="lg" variant="ghost">
           Пропустить и начать урок
         </ButtonLink>
       </div>

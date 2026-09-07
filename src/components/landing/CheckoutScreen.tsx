@@ -38,7 +38,7 @@ export function CheckoutScreen({ locale }: { locale: Locale }) {
 
   if (submitted) {
     return (
-      <div className="rounded-[14px] bg-paper p-6">
+      <div className="card p-6">
         <p className="text-2xl font-extrabold">Заявка принята</p>
         <p className="mt-3 leading-snug text-slate">
           Оплата ещё не подключена — мы открываем доступ вручную и напишем тебе на почту аккаунта,
@@ -49,7 +49,7 @@ export function CheckoutScreen({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div className="rounded-[14px] bg-paper p-6">
+    <div className="card p-6">
       <p className="eyebrow">{PRODUCT.name}</p>
       <p className="mt-2 text-2xl font-extrabold">{PRODUCT.edition}</p>
       {PRODUCT.price ? (
@@ -59,7 +59,7 @@ export function CheckoutScreen({ locale }: { locale: Locale }) {
       <ul className="mt-6 space-y-2">
         {PRODUCT.includes.map((line) => (
           <li key={line} className="flex gap-3 leading-snug">
-            <span aria-hidden className="font-bold text-gruen">
+            <span aria-hidden className="font-bold text-good">
               ✓
             </span>
             <span>{line}</span>
@@ -73,7 +73,7 @@ export function CheckoutScreen({ locale }: { locale: Locale }) {
       </p>
 
       {error ? (
-        <p role="alert" className="mt-4 rounded-[14px] border-l-8 border-rot bg-concrete p-4 font-bold">
+        <p role="alert" className="mt-4 rounded-[18px] border-l-8 border-bad bg-cream p-4 font-bold">
           {error}
         </p>
       ) : null}
@@ -82,7 +82,7 @@ export function CheckoutScreen({ locale }: { locale: Locale }) {
         type="button"
         onClick={submit}
         disabled={pending}
-        className="mt-6 flex min-h-[68px] w-full items-center justify-center rounded-[14px] bg-signal px-5 text-xl font-bold text-ink shadow-[0_3px_0_var(--color-signal-deep)] disabled:opacity-50"
+        className="mt-6 btn btn-gold btn-lg btn-block"
       >
         {pending ? 'Отправляю…' : 'Оформить'}
       </button>

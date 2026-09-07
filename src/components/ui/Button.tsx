@@ -1,55 +1,64 @@
 import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 
-type Variant = 'signal' | 'ink' | 'quiet' | 'danger';
-
-const BASE =
-  'inline-flex w-full items-center justify-center gap-2 rounded-[14px] px-5 text-center ' +
-  'font-bold leading-tight transition-transform active:scale-[0.98] ' +
-  'disabled:opacity-40 disabled:active:scale-100';
+/**
+ * Кнопки премиального лендинга: капсула, золотой градиент на главном
+ * действии, обводка на второстепенном. Форма — из
+ * mova-landing-v4-premium-preview.html, размеры — прежние: 60/68px,
+ * порог для пальца в перчатке никуда не делся.
+ */
+type Variant = 'gold' | 'ink' | 'ghost' | 'danger';
 
 const SIZES = {
-  // min-h keeps every control above the gloved-thumb threshold.
-  lg: 'min-h-[68px] text-xl',
-  md: 'min-h-[60px] text-lg',
+  lg: 'btn-lg',
+  md: '',
 } as const;
 
 const VARIANTS: Record<Variant, string> = {
-  signal: 'bg-signal text-ink shadow-[0_3px_0_var(--color-signal-deep)]',
-  ink: 'bg-ink text-concrete',
-  quiet: 'bg-paper text-ink border-2 border-concrete-deep',
-  danger: 'bg-rot text-white',
+  gold: 'btn-gold',
+  ink: 'btn-ink',
+  ghost: 'btn-ghost',
+  danger: 'bg-bad text-white',
 };
 
 type Props = {
   variant?: Variant;
   size?: keyof typeof SIZES;
+  block?: boolean;
   children: ReactNode;
 };
 
+function classes(variant: Variant, size: keyof typeof SIZES, block: boolean, extra: string) {
+  return ['btn', VARIANTS[variant], SIZES[size], block ? 'btn-block' : '', extra]
+    .filter(Boolean)
+    .join(' ');
+}
+
 export function Button({
-  variant = 'signal',
+  variant = 'gold',
   size = 'md',
+  block = true,
   className = '',
   children,
   ...rest
 }: Props & ComponentProps<'button'>) {
   return (
-    <button className={[BASE, SIZES[size], VARIANTS[variant], className].join(' ')} {...rest}>
+    <button className={classes(variant, size, block, className)} {...rest}>
       {children}
     </button>
   );
 }
 
 export function ButtonLink({
-  variant = 'signal',
+  variant = 'gold',
   size = 'md',
+  block = true,
   className = '',
   children,
   ...rest
 }: Props & ComponentProps<typeof Link>) {
   return (
-    <Link className={[BASE, SIZES[size], VARIANTS[variant], className].join(' ')} {...rest}>
+    <Link className={classes(variant, size, block, className)} {...rest}>
       {children}
     </Link>
   );

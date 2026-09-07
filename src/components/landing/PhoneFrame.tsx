@@ -11,9 +11,12 @@ export function PhoneFrame({ children, label }: { children: ReactNode; label: st
     <div
       role="img"
       aria-label={label}
-      className="mx-auto w-full max-w-[280px] rounded-[38px] border-[10px] border-ink bg-concrete p-4 shadow-[0_18px_40px_-18px_rgba(20,22,26,0.45)]"
+      className="device mx-auto w-full max-w-[296px]"
     >
-      <div className="flex flex-col items-center gap-4 py-2">{children}</div>
+      <div className="device-screen flex flex-col items-center gap-4">
+        <span aria-hidden className="device-notch" />
+        {children}
+      </div>
     </div>
   );
 }

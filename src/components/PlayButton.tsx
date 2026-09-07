@@ -29,7 +29,7 @@ export function PlayButton({ src, label = 'Слушать' }: Props) {
   if (!src) {
     return (
       <div className="flex flex-col items-center gap-3">
-        <div className="flex h-[132px] w-[132px] items-center justify-center rounded-full border-4 border-dashed border-concrete-deep text-4xl text-slate">
+        <div className="flex h-[132px] w-[132px] items-center justify-center rounded-full border-4 border-dashed border-cream-deep text-4xl text-slate">
           ♪
         </div>
         <p className="text-center text-slate">Аудио для этой фразы ещё не записано</p>
@@ -61,13 +61,13 @@ export function PlayButton({ src, label = 'Слушать' }: Props) {
         type="button"
         onClick={toggle}
         aria-label={playing ? 'Остановить' : label}
-        className="flex h-[132px] w-[132px] items-center justify-center rounded-full bg-signal text-5xl text-ink shadow-[0_5px_0_var(--color-signal-deep)] transition-transform active:translate-y-[3px] active:shadow-[0_2px_0_var(--color-signal-deep)]"
+        className="listen-btn h-[132px] w-[132px] text-5xl"
       >
         {playing ? '■' : '▶'}
       </button>
       <span className="text-lg font-bold">{playing ? 'Играет…' : label}</span>
       {failed ? (
-        <p role="alert" className="text-center text-rot">
+        <p role="alert" className="text-center text-bad">
           Звук не запустился. Проверь громкость и беззвучный режим, потом нажми ещё раз.
         </p>
       ) : null}

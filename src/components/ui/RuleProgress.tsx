@@ -20,7 +20,7 @@ export function RuleProgress({
   const ticks = 20;
 
   return (
-    <div className="rounded-[14px] bg-paper p-4">
+    <div className="card p-5">
       <div className="flex items-baseline justify-between">
         <span className="eyebrow">{label}</span>
         <span className="text-sm font-bold tabular-nums text-slate">
@@ -31,10 +31,10 @@ export function RuleProgress({
       <div
         role="img"
         aria-label={`Освоено ${learned} из ${total} фраз`}
-        className="relative mt-3 h-11 overflow-hidden rounded-[6px] bg-concrete-deep"
+        className="relative mt-4 h-11 overflow-hidden rounded-[10px] bg-cream-deep"
       >
         <div
-          className="absolute inset-y-0 left-0 bg-signal"
+          className="absolute inset-y-0 left-0 bg-gradient-to-b from-gold-2 to-gold"
           style={{ width: `${ratio * 100}%` }}
         />
         {/* Rule markings: taller stroke every fifth tick, like a real Zollstock. */}

@@ -25,7 +25,7 @@ export default async function ReviewPage() {
           title="Пока нечего повторять"
           hint="Фразы, которые пора повторить, появятся здесь сами — по расписанию или если ты в них ошибся."
           action={
-            <ButtonLink href="/app" variant="quiet">
+            <ButtonLink href="/app" variant="ghost">
               К урокам
             </ButtonLink>
           }

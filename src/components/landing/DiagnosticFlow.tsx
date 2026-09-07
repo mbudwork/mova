@@ -97,7 +97,7 @@ export function DiagnosticFlow({
         {questions.map((item, i) => (
           <span
             key={item.id}
-            className={['h-1.5 flex-1 rounded-full', i <= index ? 'bg-signal' : 'bg-concrete-deep'].join(
+            className={['h-1.5 flex-1 rounded-full', i <= index ? 'bg-gold' : 'bg-cream-deep'].join(
               ' ',
             )}
           />
@@ -114,7 +114,7 @@ export function DiagnosticFlow({
             type="button"
             onClick={() => track('test_question_audio_play', { position: question.position, mock: true })}
             aria-label="Слушать команду"
-            className="flex h-[120px] w-[120px] items-center justify-center rounded-full bg-signal text-4xl text-ink shadow-[0_5px_0_var(--color-signal-deep)] active:translate-y-[2px]"
+            className="listen-btn h-[120px] w-[120px] text-4xl"
           >
             ▶
           </button>
@@ -141,12 +141,12 @@ export function DiagnosticFlow({
               onClick={() => answer(option.id)}
               disabled={revealed}
               className={[
-                'flex min-h-[64px] w-full items-center gap-3 rounded-[14px] border-2 px-4 py-3 text-left text-lg leading-snug',
+                'flex min-h-[64px] w-full items-center gap-3 rounded-[18px] border-2 px-4 py-3 text-left text-lg leading-snug',
                 reveal
-                  ? 'border-gruen bg-gruen/10 font-bold'
+                  ? 'border-good bg-good/10 font-bold'
                   : isChosen
-                    ? 'border-rot bg-rot/10'
-                    : 'border-concrete-deep bg-paper',
+                    ? 'border-bad bg-bad/10'
+                    : 'border-cream-deep bg-paper',
               ].join(' ')}
             >
               <span aria-hidden className="w-5 shrink-0 text-xl">
@@ -167,7 +167,7 @@ export function DiagnosticFlow({
             <button
               type="button"
               onClick={next}
-              className="flex min-h-[68px] w-full items-center justify-center rounded-[14px] bg-signal px-5 text-xl font-bold text-ink shadow-[0_3px_0_var(--color-signal-deep)]"
+              className="btn btn-gold btn-lg btn-block"
             >
               {index + 1 >= total ? 'Показать результат' : 'Дальше'}
             </button>
@@ -214,7 +214,7 @@ function AudioQuestion({ src, onPlay }: { src: string; onPlay: () => void }) {
       type="button"
       onClick={toggle}
       aria-label={playing ? 'Остановить' : 'Слушать команду'}
-      className="flex h-[120px] w-[120px] items-center justify-center rounded-full bg-signal text-4xl text-ink shadow-[0_5px_0_var(--color-signal-deep)]"
+      className="listen-btn h-[120px] w-[120px] text-4xl"
     >
       {playing ? '■' : '▶'}
       <audio ref={audioRef} src={src} preload="none" onEnded={() => setPlaying(false)} />
@@ -258,7 +258,7 @@ function DiagnosticResult({
             {summary.strongSkills.map((skill) => (
               <li
                 key={skill}
-                className="rounded-full border-2 border-gruen bg-gruen/10 px-4 py-2 text-sm font-bold"
+                className="rounded-full border-2 border-good bg-good/10 px-4 py-2 text-sm font-bold"
               >
                 {skill}
               </li>
@@ -272,7 +272,7 @@ function DiagnosticResult({
           <p className="eyebrow">Что стоит подтянуть</p>
           <ul className="mt-3 space-y-2">
             {summary.missedSkills.map((skill) => (
-              <li key={skill} className="rounded-[14px] bg-paper px-4 py-3 text-lg font-bold">
+              <li key={skill} className="card px-4 py-3 text-lg font-bold">
                 {skill}
               </li>
             ))}
@@ -280,7 +280,7 @@ function DiagnosticResult({
         </div>
       ) : null}
 
-      <div className="mt-8 rounded-[14px] bg-paper p-5">
+      <div className="mt-8 card p-6">
         <p className="font-bold">Именно это тренирует MOVA</p>
         <p className="mt-2 leading-snug text-slate">
           Слушаешь настоящую команду, выбираешь значение, сразу видишь, верно ли понял. То, в чём
@@ -294,13 +294,13 @@ function DiagnosticResult({
           onClick={() =>
             track('purchase_clicked', { placement: 'test_result', score: summary.correctCount })
           }
-          className="flex min-h-[68px] w-full items-center justify-center rounded-[14px] bg-signal px-5 text-xl font-bold text-ink shadow-[0_3px_0_var(--color-signal-deep)]"
+          className="btn btn-gold btn-lg btn-block"
         >
           {copy.offerCta === copy.offerCta ? 'Получить полный доступ' : copy.offerCta}
         </Link>
         <Link
           href="#dostup"
-          className="flex min-h-[60px] w-full items-center justify-center rounded-[14px] border-2 border-concrete-deep bg-paper px-5 text-lg font-bold"
+          className="flex min-h-[60px] w-full items-center justify-center rounded-[18px] border border-[var(--line-light)] bg-paper px-5 text-lg font-bold"
         >
           Посмотреть, что внутри
         </Link>

@@ -24,7 +24,7 @@ export function VideoBlock({
 
   if (!VIDEO_SRC) {
     return (
-      <div className="flex aspect-[4/5] w-full flex-col items-center justify-center rounded-[14px] border-2 border-dashed border-concrete-deep bg-paper p-6 text-center">
+      <div className="flex aspect-[4/5] w-full flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-cream-deep bg-paper p-6 text-center">
         <span aria-hidden className="text-4xl text-slate">
           ▶
         </span>
@@ -59,10 +59,10 @@ export function VideoBlock({
           setPlaying(true);
           track('product_video_started', {});
         }}
-        className="relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-[14px] bg-ink"
+        className="relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-[18px] bg-ink"
         aria-label="Смотреть видео о MOVA"
       >
-        <span className="flex h-[88px] w-[88px] items-center justify-center rounded-full bg-signal text-3xl text-ink">
+        <span className="flex h-[88px] w-[88px] items-center justify-center rounded-full bg-gold text-3xl text-ink">
           ▶
         </span>
       </button>
@@ -78,7 +78,7 @@ export function VideoBlock({
       preload="none"
       onTimeUpdate={handleTimeUpdate}
       onEnded={() => track('product_video_completed', {})}
-      className="aspect-[4/5] w-full rounded-[14px] bg-ink"
+      className="aspect-[4/5] w-full rounded-[18px] bg-ink"
     />
   );
 }

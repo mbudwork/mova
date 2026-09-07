@@ -18,15 +18,21 @@ function Submit({ label }: { label: string }) {
 export function AuthForm({
   mode,
   action,
+  next,
 }: {
   mode: 'login' | 'register';
   action: (prev: AuthResult, formData: FormData) => Promise<AuthResult>;
+  /** Where to land after a successful sign-in. Set by proxy.ts on the bounce. */
+  next?: string;
 }) {
   const [state, formAction] = useActionState(action, undefined);
   const isRegister = mode === 'register';
+  const pendingConfirmation = state?.code === 'email_not_confirmed';
 
   return (
     <form action={formAction} className="space-y-4">
+      {next ? <input type="hidden" name="next" value={next} /> : null}
+
       <label className="block">
         <span className="eyebrow">Почта</span>
         <input
@@ -35,7 +41,7 @@ export function AuthForm({
           inputMode="email"
           autoComplete="email"
           required
-          className="mt-2 min-h-[60px] w-full rounded-[14px] border-2 border-concrete-deep bg-paper px-4 text-lg"
+          className="field mt-2"
         />
       </label>
 
@@ -47,22 +53,38 @@ export function AuthForm({
           autoComplete={isRegister ? 'new-password' : 'current-password'}
           required
           minLength={isRegister ? 8 : undefined}
-          className="mt-2 min-h-[60px] w-full rounded-[14px] border-2 border-concrete-deep bg-paper px-4 text-lg"
+          className="field mt-2"
         />
         {isRegister ? <span className="mt-2 block text-sm text-slate">Минимум 8 символов</span> : null}
       </label>
 
+      {/*
+        An unconfirmed account is not a red-box failure — the user did nothing
+        wrong and there is exactly one thing to do about it. Blue border, and a
+        way out rather than a dead end.
+      */}
       {state?.error ? (
-        <p role="alert" className="rounded-[14px] border-l-8 border-rot bg-paper p-4 font-bold">
-          {state.error}
-        </p>
+        <div
+          role="alert"
+          className={`notice ${pendingConfirmation ? 'notice-gold' : 'notice-bad'}`}
+        >
+          <p>{state.error}</p>
+          {pendingConfirmation ? (
+            <p className="mt-2 font-normal text-slate">
+              Не нашёл письмо?{' '}
+              <Link href="/register/check-email" className="font-bold text-gold-deep underline">
+                Отправить ещё раз
+              </Link>
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       <Submit label={isRegister ? 'Создать аккаунт' : 'Войти'} />
 
       <p className="pt-2 text-center text-slate">
         {isRegister ? 'Уже есть аккаунт? ' : 'Ещё нет аккаунта? '}
-        <Link href={isRegister ? '/login' : '/register'} className="font-bold text-blau underline">
+        <Link href={isRegister ? '/login' : '/register'} className="font-bold text-gold-deep underline">
           {isRegister ? 'Войти' : 'Создать'}
         </Link>
       </p>

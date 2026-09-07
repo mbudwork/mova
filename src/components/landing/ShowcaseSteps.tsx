@@ -9,10 +9,10 @@ export function ShowcaseSteps({ copy }: { copy: LandingCopy }) {
   return (
     <ol className="space-y-3">
       {copy.showcaseSteps.map((item, index) => (
-        <li key={item.title} className="flex gap-4 rounded-[14px] bg-paper p-4">
+        <li key={item.title} className="flex gap-4 card p-5">
           <span
             aria-hidden
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-signal font-bold"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold font-bold"
           >
             {index + 1}
           </span>

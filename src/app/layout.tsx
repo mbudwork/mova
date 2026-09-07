@@ -19,7 +19,7 @@ export const viewport: Viewport = {
   // Zoom stays enabled: workers read this in bad light and must be able to
   // pinch a German phrase larger.
   maximumScale: 5,
-  themeColor: '#EDEBE6',
+  themeColor: '#F7F3EC',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
