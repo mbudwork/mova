@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { track } from '@/lib/analytics/client';
 import { PRODUCT, checkoutMode } from '@/lib/pricing';
 import type { Locale } from '@/lib/locale';
-import { submitCheckoutLead } from '@/app/checkout/actions';
+import { startStripeCheckout, submitCheckoutLead } from '@/app/checkout/actions';
 
 /**
  * Honest checkout adapter. It does not fake a successful payment — the audit
@@ -17,9 +17,25 @@ export function CheckoutScreen({ locale }: { locale: Locale }) {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const live = checkoutMode === 'stripe';
+
   function submit() {
-    track('checkout_started', { locale });
+    track('checkout_started', { locale, mode: live ? 'stripe' : 'lead' });
+    setError(null);
+
     startTransition(async () => {
+      if (live) {
+        const session = await startStripeCheckout(locale);
+        if (!session.ok) {
+          setError(session.error);
+          return;
+        }
+        // Full navigation, not router.push: this leaves our origin for
+        // Stripe's hosted page.
+        window.location.assign(session.url);
+        return;
+      }
+
       const result = await submitCheckoutLead(locale);
       if (!result.ok) {
         setError(result.error);
@@ -27,13 +43,6 @@ export function CheckoutScreen({ locale }: { locale: Locale }) {
       }
       setSubmitted(true);
     });
-  }
-
-  if (checkoutMode === 'stripe') {
-    // Live payment path — implemented when Stripe credentials exist.
-    return (
-      <p className="text-slate">Оплата подключается. Обнови страницу через минуту.</p>
-    );
   }
 
   if (submitted) {
@@ -68,12 +77,13 @@ export function CheckoutScreen({ locale }: { locale: Locale }) {
       </ul>
 
       <p className="mt-6 text-sm text-slate">
-        Приём онлайн-оплаты сейчас настраивается. Нажимая «Оформить», ты оставляешь заявку — доступ
-        откроем вручную и напишем на твою почту.
+        {live
+          ? 'Оплата проходит на защищённой странице Stripe. Доступ откроется сразу после оплаты.'
+          : 'Приём онлайн-оплаты сейчас настраивается. Нажимая «Оформить», ты оставляешь заявку — доступ откроем вручную и напишем на твою почту.'}
       </p>
 
       {error ? (
-        <p role="alert" className="mt-4 rounded-[18px] border-l-8 border-bad bg-cream p-4 font-bold">
+        <p role="alert" className="notice notice-bad mt-4">
           {error}
         </p>
       ) : null}
@@ -84,7 +94,7 @@ export function CheckoutScreen({ locale }: { locale: Locale }) {
         disabled={pending}
         className="mt-6 btn btn-gold btn-lg btn-block"
       >
-        {pending ? 'Отправляю…' : 'Оформить'}
+        {pending ? (live ? 'Открываю оплату…' : 'Отправляю…') : live ? 'Оплатить' : 'Оформить'}
       </button>
     </div>
   );

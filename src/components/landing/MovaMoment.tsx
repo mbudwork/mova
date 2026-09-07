@@ -78,9 +78,16 @@ export function MovaMoment({
   }
 
   return (
-    <div className="card p-6">
+    /*
+      В герое карточка тёмная — она лежит на графите и должна читаться как
+      экран телефона из макета. В разделе «как это работает» фон кремовый,
+      там карточка светлая. Варианты ответа подстраиваются сами.
+    */
+    <div className={variant === 'hero' ? 'card-dark p-6' : 'card p-6'}>
       <p className="eyebrow">{copy.momentTitle}</p>
-      <p className="mt-2 text-slate">{copy.momentPrompt}</p>
+      <p className={variant === 'hero' ? 'mt-2 text-mist' : 'mt-2 text-slate'}>
+        {copy.momentPrompt}
+      </p>
 
       <div className="mt-5 flex justify-center">
         <button
@@ -98,7 +105,15 @@ export function MovaMoment({
       {revealed ? (
         <p className="de-phrase mt-5 text-center">{GERMAN}</p>
       ) : (
-        <p className="mt-5 text-center text-sm text-slate">{copy.momentFootnote}</p>
+        <p
+          className={
+            variant === 'hero'
+              ? 'mt-5 text-center text-sm text-mist'
+              : 'mt-5 text-center text-sm text-slate'
+          }
+        >
+          {copy.momentFootnote}
+        </p>
       )}
 
       <div className="mt-5 space-y-2">
@@ -112,15 +127,13 @@ export function MovaMoment({
               onClick={() => choose(option.text)}
               disabled={revealed}
               className={[
-                'flex min-h-[60px] w-full items-center gap-3 rounded-[18px] border-2 px-4 py-3 text-left text-lg leading-snug',
-                reveal
-                  ? 'border-good bg-good/10 font-bold'
-                  : isChosen
-                    ? 'border-bad bg-bad/10'
-                    : 'border-cream-deep bg-cream',
-              ].join(' ')}
+                'answer-opt',
+                reveal ? 'answer-opt-correct' : isChosen ? 'answer-opt-wrong' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
-              <span aria-hidden className="w-5 shrink-0 text-xl">
+              <span aria-hidden className="answer-mark">
                 {reveal ? '✓' : isChosen ? '✕' : '›'}
               </span>
               <span>{option.text}</span>
@@ -137,7 +150,7 @@ export function MovaMoment({
           <Link
             href={testHref}
             onClick={() => track('hero_test_click', { placement: 'moment' })}
-            className="mt-4 flex min-h-[60px] w-full items-center justify-center rounded-[18px] bg-gold px-5 text-lg font-bold text-ink"
+            className="btn btn-gold btn-block mt-4"
           >
             {copy.momentCta}
           </Link>

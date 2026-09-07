@@ -43,9 +43,12 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
         }}
       >
         <div className="mx-auto w-full max-w-[560px] px-5">
+          {/*
+            Логотип и есть надзаголовок. Раньше здесь стоял и <Brand/>, и
+            copy.heroKicker — а heroKicker равен строке 'MOVA', так что
+            получалось «MOVA · MOVA» с золотой точкой между ними.
+          */}
           <Brand muted />
-
-          <p className="eyebrow mt-7">{copy.heroKicker}</p>
 
           <h1 className="mt-4 whitespace-pre-line text-[2.4rem] font-extrabold leading-[.99] tracking-[-.035em] text-cream">
             {copy.heroTitle}

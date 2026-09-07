@@ -141,15 +141,13 @@ export function DiagnosticFlow({
               onClick={() => answer(option.id)}
               disabled={revealed}
               className={[
-                'flex min-h-[64px] w-full items-center gap-3 rounded-[18px] border-2 px-4 py-3 text-left text-lg leading-snug',
-                reveal
-                  ? 'border-good bg-good/10 font-bold'
-                  : isChosen
-                    ? 'border-bad bg-bad/10'
-                    : 'border-cream-deep bg-paper',
-              ].join(' ')}
+                'answer-opt',
+                reveal ? 'answer-opt-correct' : isChosen ? 'answer-opt-wrong' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
-              <span aria-hidden className="w-5 shrink-0 text-xl">
+              <span aria-hidden className="answer-mark">
                 {reveal ? '✓' : isChosen ? '✕' : ''}
               </span>
               <span>{option.text}</span>

@@ -1,6 +1,7 @@
 import { CheckoutScreen } from '@/components/landing/CheckoutScreen';
 import { Screen, ScreenHeader } from '@/components/ui/Screen';
-import { requireUser } from '@/lib/auth/guards';
+import { redirect } from 'next/navigation';
+import { hasFullAccess, requireUser } from '@/lib/auth/guards';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,16 @@ export const dynamic = 'force-dynamic';
  */
 export default async function CheckoutPageRu() {
   await requireUser();
+
+  /*
+    Уже купил — покупать нечего.
+
+    Раньше страница проверяла только наличие аккаунта, поэтому пользователь с
+    активным доступом, пришедший по ссылке на оформление (а именно туда его
+    возвращает proxy.ts через ?next= после входа), видел предложение купить то,
+    что у него уже есть. Для платящего это выглядит как потерянная оплата.
+  */
+  if (await hasFullAccess()) redirect('/app');
 
   return (
     <main>

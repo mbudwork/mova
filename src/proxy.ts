@@ -57,5 +57,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|.*\\.(?:png|jpg|svg|mp3|woff2)$).*)'],
+  // api/stripe is excluded deliberately: the webhook carries no session, and
+  // running an auth round-trip on every Stripe delivery only adds latency to a
+  // request Stripe will retry if we answer slowly.
+  matcher: [
+    '/((?!api/stripe|_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|.*\\.(?:png|jpg|svg|mp3|woff2)$).*)',
+  ],
 };

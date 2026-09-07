@@ -1,6 +1,7 @@
 import { CheckoutScreen } from '@/components/landing/CheckoutScreen';
 import { Screen, ScreenHeader } from '@/components/ui/Screen';
-import { requireProfile } from '@/lib/auth/guards';
+import { redirect } from 'next/navigation';
+import { hasFullAccess, requireProfile } from '@/lib/auth/guards';
 
 /**
  * Reached when a logged-in user without an entitlement opens protected
@@ -9,6 +10,10 @@ import { requireProfile } from '@/lib/auth/guards';
  */
 export default async function PurchasePage() {
   const profile = await requireProfile();
+
+  // Тот же случай, что и на /ru/checkout: сюда ведёт requireFullAccess() при
+  // отказе, но открыть адрес можно и руками — уже купившему тут делать нечего.
+  if (await hasFullAccess()) redirect('/app');
   const locale = profile.uiLocale === 'uk' ? 'uk' : 'ru';
 
   return (

@@ -116,8 +116,15 @@
     color: var(--color-cream);
   }
 
+  /*
+    color задан явно, а не оставлен на наследование. Светлая карточка может
+    лежать внутри .surface-dark (так стоит MOVA-момент в герое), и тогда без
+    этой строки текст приходит кремовым по белому — ровно тот случай, когда
+    варианты ответа на экране были почти не видны.
+  */
   .card {
     background: var(--color-paper);
+    color: var(--color-ink);
     border-radius: 26px;
     box-shadow: 0 20px 50px -30px rgba(10, 11, 13, 0.25);
   }
@@ -365,8 +372,69 @@
     color: var(--color-mist);
   }
 
+  /* --------------------------------------------------------------- answers */
+  /*
+    Вариант ответа. Один класс на все три места, где спрашивают «что сказал
+    прораб»: MOVA-момент в герое, он же в разделе «как это работает» и полный
+    тест из семи команд. Раньше это были три копии одних и тех же утилит,
+    которые разъезжались при первой же правке.
+
+    Форма — .d-opt из премиум-макета. На тёмной поверхности класс
+    переключается сам, поэтому вызывающему коду не нужно знать, где он лежит.
+  */
+  .answer-opt {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 62px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 1.5px solid var(--line-light);
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color 0.15s var(--ease),
+      background 0.15s var(--ease);
+  }
+
+  .answer-opt:disabled {
+    cursor: default;
+  }
+
+  .surface-dark .answer-opt,
+  .card-dark .answer-opt {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-cream);
+  }
+
+  .answer-opt-correct {
+    border-color: var(--color-good);
+    background: rgba(62, 161, 107, 0.14);
+    font-weight: 700;
+  }
+
+  .answer-opt-wrong {
+    border-color: var(--color-bad);
+    background: rgba(224, 103, 63, 0.14);
+  }
+
+  .answer-mark {
+    width: 20px;
+    flex-shrink: 0;
+    font-size: 1.15rem;
+    text-align: center;
+  }
+
   /* --------------------------------------------------------------- notices */
   .notice {
+    color: var(--color-ink);
     border-radius: 18px;
     border-left: 8px solid var(--color-cream-deep);
     background: var(--color-paper);
