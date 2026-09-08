@@ -124,15 +124,30 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
           {demo ? (
             <div className="relative mt-14 flex justify-center">
               <span aria-hidden className="glow-blob" />
-              <div className="device w-full max-w-[320px]">
+              <div className="device relative w-full max-w-[296px]">
                 <div className="device-screen">
                   <span aria-hidden className="device-notch" />
-                  <MovaMoment
-                    copy={copy}
-                    testHref={routes.test}
-                    demo={demo}
-                    variant="hero"
-                  />
+                  {/* Строка состояния: без неё корпус читается как рамка, а не телефон. */}
+                  <div aria-hidden className="d-status">
+                    <span>9:41</span>
+                    <span>MOVA</span>
+                  </div>
+                  <MovaMoment copy={copy} testHref={routes.test} demo={demo} variant="hero" />
+                </div>
+
+                {/*
+                  Плашки, вылетающие за корпус. В макете именно они создают
+                  объём: экран перестаёт быть плоской картинкой и получает
+                  передний план. На узких экранах скрыты — там они налезали бы
+                  на сам телефон.
+                */}
+                <div aria-hidden className="chip -left-6 top-[8%] hidden sm:block">
+                  232 CORE
+                  <small>общий язык стройки</small>
+                </div>
+                <div aria-hidden className="chip -left-10 bottom-[18%] hidden sm:block">
+                  MASTERED
+                  <small>слабое место закрыто</small>
                 </div>
               </div>
             </div>

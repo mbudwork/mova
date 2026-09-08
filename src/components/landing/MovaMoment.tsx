@@ -97,24 +97,30 @@ export function MovaMoment({
     if (started) started.catch(() => setPlaying(false));
   }
 
+  const onDevice = variant === 'hero';
+
   return (
     /*
-      В герое карточка тёмная — она лежит на графите и должна читаться как
-      экран телефона из макета. В разделе «как это работает» фон кремовый,
-      там карточка светлая. Варианты ответа подстраиваются сами.
+      В герое — БЕЗ карточки. Содержимое лежит прямо на экране телефона, как в
+      макете. Раньше здесь была card-dark, то есть карточка со своим фоном,
+      рамкой и скруглением внутри корпуса телефона: рамка в рамке, из-за чего
+      весь блок выглядел самодельным. Класс on-device ужимает типографику и
+      варианты ответа под ширину экрана 296px.
     */
-    <div className={variant === 'hero' ? 'card-dark p-6' : 'card p-6'}>
-      <p className="eyebrow">{copy.momentTitle}</p>
-      <p className={variant === 'hero' ? 'mt-2 text-mist' : 'mt-2 text-slate'}>
-        {copy.momentPrompt}
-      </p>
+    <div className={onDevice ? 'on-device flex min-h-[452px] flex-col' : 'card p-6'}>
+      <p className={onDevice ? 'd-eyebrow' : 'eyebrow'}>{copy.momentTitle}</p>
+      <p className={onDevice ? 'd-prompt' : 'mt-2 text-slate'}>{copy.momentPrompt}</p>
 
-      <div className="mt-5 flex justify-center">
+      <div className={onDevice ? 'mt-4 flex justify-center' : 'mt-5 flex justify-center'}>
         <button
           type="button"
           onClick={togglePlay}
           aria-label={playing ? 'Остановить' : copy.momentPlay}
-          className="listen-btn h-[104px] w-[104px] text-4xl"
+          className={
+            onDevice
+              ? 'listen-btn h-[92px] w-[92px] text-2xl'
+              : 'listen-btn h-[104px] w-[104px] text-4xl'
+          }
         >
           {playing ? '■' : '▶'}
         </button>
@@ -132,22 +138,27 @@ export function MovaMoment({
         />
       </div>
 
+      {/* Эквалайзер из макета: показывает, что кнопка живая, пока идёт звук. */}
+      {onDevice ? (
+        <div aria-hidden className={`wave ${playing ? 'wave-on' : ''}`}>
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+      ) : null}
+
       {/* GERMAN TEXT LIVES ONLY INSIDE THIS BLOCK. Do not hoist it above. */}
       {revealed ? (
-        <p className="de-phrase mt-5 text-center">{demo.germanText}</p>
+        <p className={onDevice ? 'd-de' : 'de-phrase mt-5 text-center'}>{demo.germanText}</p>
       ) : (
-        <p
-          className={
-            variant === 'hero'
-              ? 'mt-5 text-center text-sm text-mist'
-              : 'mt-5 text-center text-sm text-slate'
-          }
-        >
+        <p className={onDevice ? 'd-note' : 'mt-5 text-center text-sm text-slate'}>
           {copy.momentFootnote}
         </p>
       )}
 
-      <div className="mt-5 space-y-2">
+      <div className={onDevice ? 'mt-4 space-y-2' : 'mt-5 space-y-2'}>
         {demo.options.map((option) => {
           const isChosen = chosen === option;
           const reveal = revealed && option === demo.correct;
@@ -174,17 +185,26 @@ export function MovaMoment({
       </div>
 
       {revealed ? (
-        <div className="mt-5">
-          <p className="text-lg font-bold">
+        <div className={onDevice ? 'mt-4' : 'mt-5'}>
+          <p className={onDevice ? 'text-sm font-bold' : 'text-lg font-bold'}>
             {chosen === demo.correct ? copy.momentCorrect : copy.momentIncorrect}
           </p>
           <Link
             href={testHref}
             onClick={() => track('hero_test_click', { placement: 'moment' })}
-            className="btn btn-gold btn-block mt-4"
+            className={onDevice ? 'btn btn-gold btn-block mt-3 nav-cta' : 'btn btn-gold btn-block mt-4'}
           >
             {copy.momentCta}
           </Link>
+        </div>
+      ) : null}
+
+      {/* Точки прогресса внизу экрана — из макета: намёк, что это один шаг. */}
+      {onDevice ? (
+        <div aria-hidden className="d-footer">
+          <span className="d-dot d-dot-on" />
+          <span className="d-dot" />
+          <span className="d-dot" />
         </div>
       ) : null}
     </div>
