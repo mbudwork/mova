@@ -3,15 +3,23 @@
 import { useEffect, useRef, useState } from 'react';
 
 type Props = {
-  /** null = no approved audio yet; the button says so instead of faking it. */
+  /** null = одобренной записи ещё нет; кнопка честно об этом говорит. */
   src: string | null;
   label?: string;
 };
 
 /**
- * The single most important control in the product. Big, yellow, one job.
- * Playback is always user-initiated — mobile browsers block autoplay, and a
- * worker with a phone in a pocket should never have audio start on its own.
+ * Главный элемент управления в продукте. Большой, золотой, одна задача.
+ *
+ * Состояние берётся из событий самого плеера (play/pause/ended/error), а не из
+ * результата промиса play(). Так было раньше, и на телефоне это ломалось: на
+ * мобильных браузерах play() может отработать без ошибки, но реально начать
+ * воспроизведение позже, либо отклониться беззвучно — иконка застревала на «▶»
+ * и выглядела мёртвой, хотя звук шёл, или наоборот. Медиаэлемент знает своё
+ * состояние точно, промис — нет.
+ *
+ * Воспроизведение всегда запускает человек: мобильные браузеры блокируют
+ * автозапуск, а у рабочего телефон в кармане — звук не должен включаться сам.
  */
 export function PlayButton({ src, label = 'Слушать' }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -21,10 +29,31 @@ export function PlayButton({ src, label = 'Слушать' }: Props) {
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
-    const onEnd = () => setPlaying(false);
-    el.addEventListener('ended', onEnd);
-    return () => el.removeEventListener('ended', onEnd);
-  }, []);
+
+    const onPlay = () => {
+      setPlaying(true);
+      setFailed(false);
+    };
+    const onStop = () => setPlaying(false);
+    const onError = () => {
+      setPlaying(false);
+      setFailed(true);
+    };
+
+    el.addEventListener('play', onPlay);
+    el.addEventListener('playing', onPlay);
+    el.addEventListener('pause', onStop);
+    el.addEventListener('ended', onStop);
+    el.addEventListener('error', onError);
+
+    return () => {
+      el.removeEventListener('play', onPlay);
+      el.removeEventListener('playing', onPlay);
+      el.removeEventListener('pause', onStop);
+      el.removeEventListener('ended', onStop);
+      el.removeEventListener('error', onError);
+    };
+  }, [src]);
 
   if (!src) {
     return (
@@ -37,22 +66,23 @@ export function PlayButton({ src, label = 'Слушать' }: Props) {
     );
   }
 
-  async function toggle() {
+  function toggle() {
     const el = audioRef.current;
     if (!el) return;
-    try {
-      if (playing) {
-        el.pause();
-        el.currentTime = 0;
-        setPlaying(false);
-      } else {
-        await el.play();
-        setPlaying(true);
-      }
-    } catch {
-      setFailed(true);
-      setPlaying(false);
+
+    if (!el.paused) {
+      el.pause();
+      el.currentTime = 0;
+      return;
     }
+
+    /*
+      play() вызывается синхронно внутри обработчика клика — на iOS это
+      обязательное условие: любой await до вызова разрывает цепочку
+      пользовательского жеста, и браузер отказывает в воспроизведении.
+    */
+    const started = el.play();
+    if (started) started.catch(() => setFailed(true));
   }
 
   return (
@@ -68,10 +98,16 @@ export function PlayButton({ src, label = 'Слушать' }: Props) {
       <span className="text-lg font-bold">{playing ? 'Играет…' : label}</span>
       {failed ? (
         <p role="alert" className="text-center text-bad">
-          Звук не запустился. Проверь громкость и беззвучный режим, потом нажми ещё раз.
+          Звук не запустился. Проверь громкость и переключатель «без звука» сбоку телефона — на
+          iPhone он глушит и веб-страницы.
         </p>
       ) : null}
-      <audio ref={audioRef} src={src} preload="none" />
+      {/*
+        preload="metadata", а не "none": Safari на iOS отказывается стартовать
+        трек, о котором ничего не знает. playsInline нужен там же — без него
+        iOS может попытаться открыть медиа во весь экран.
+      */}
+      <audio ref={audioRef} src={src} preload="metadata" playsInline />
     </div>
   );
 }

@@ -1,10 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { track } from '@/lib/analytics/client';
 import { computeAnswerState, shouldRevealGerman } from '@/lib/diagnostic-flow';
 import type { LandingCopy } from '@/lib/landing-copy';
+import type { DemoPhrase } from '@/lib/content/public-demo';
 
 /**
  * The MOVA moment: the one interaction the whole landing is organized around.
@@ -21,28 +22,20 @@ import type { LandingCopy } from '@/lib/landing-copy';
  * drift apart.
  */
 
-const GERMAN = 'Mach erst diese Wand fertig.';
-const CORRECT_TEXT_RU = 'Сначала закончи эту стену.';
-// Public file for this exact fixed demo phrase (same sentence as diagnostic
-// question #6) — safe to hardcode a public URL here since this widget is
-// shown to anonymous, logged-out visitors and always plays the same line.
-// Uses the public `diagnostic-audio` bucket, not the private course `audio`
-// bucket (which requires a signed URL + an authenticated learner).
-const DEMO_AUDIO_URL =
-  'https://vcayatyamthyzeycfshc.supabase.co/storage/v1/object/public/diagnostic-audio/diagnostic/06-P0112.mp3';
-const OPTIONS_RU = [
-  { text: 'Сначала закончи эту стену.', correct: true },
-  { text: 'Эту стену не трогай.', correct: false },
-  { text: 'Стена готова, иди дальше.', correct: false },
-];
-
+/*
+  Фраза приходит сверху и каждую загрузку своя — раньше здесь были зашитые
+  константы, и посетитель, заглянувший второй раз, видел ровно ту же команду.
+  Демо выглядело записанным роликом, а не срезом живого курса.
+*/
 export function MovaMoment({
   copy,
   testHref,
+  demo,
   variant = 'hero',
 }: {
   copy: LandingCopy;
   testHref: string;
+  demo: DemoPhrase;
   variant?: 'hero' | 'showcase';
 }) {
   const [chosen, setChosen] = useState<string | null>(null);
@@ -54,27 +47,54 @@ export function MovaMoment({
   function choose(text: string) {
     if (revealed) return;
     setChosen(text);
-    const correct = OPTIONS_RU.find((o) => o.text === text)?.correct ?? false;
+    const correct = text === demo.correct;
     track('mini_test_answer', { correct, variant });
   }
+
+  /*
+    Состояние берётся из событий плеера, а не из результата play(). На телефоне
+    промис мог разрешиться раньше реального старта или отклониться беззвучно, и
+    иконка застревала на «▶», хотя звук шёл (или наоборот). Медиаэлемент знает
+    своё состояние точно.
+  */
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+
+    const onPlay = () => setPlaying(true);
+    const onStop = () => setPlaying(false);
+
+    el.addEventListener('play', onPlay);
+    el.addEventListener('playing', onPlay);
+    el.addEventListener('pause', onStop);
+    el.addEventListener('ended', onStop);
+    el.addEventListener('error', onStop);
+
+    return () => {
+      el.removeEventListener('play', onPlay);
+      el.removeEventListener('playing', onPlay);
+      el.removeEventListener('pause', onStop);
+      el.removeEventListener('ended', onStop);
+      el.removeEventListener('error', onStop);
+    };
+  }, [demo.audioUrl]);
 
   function togglePlay() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (playing) {
+    if (!audio.paused) {
       audio.pause();
       audio.currentTime = 0;
-      setPlaying(false);
       return;
     }
 
     track('mini_test_audio_play', { variant });
     if (variant === 'hero') track('hero_demo_play', {});
-    audio
-      .play()
-      .then(() => setPlaying(true))
-      .catch(() => setPlaying(false));
+
+    // Синхронный вызов внутри обработчика клика — обязательное условие iOS.
+    const started = audio.play();
+    if (started) started.catch(() => setPlaying(false));
   }
 
   return (
@@ -97,13 +117,24 @@ export function MovaMoment({
           className="listen-btn h-[104px] w-[104px] text-4xl"
         >
           {playing ? '■' : '▶'}
-          <audio ref={audioRef} src={DEMO_AUDIO_URL} preload="none" onEnded={() => setPlaying(false)} />
         </button>
+        {/*
+          Плеер вынесен из кнопки: медиаэлемент внутри интерактивного элемента
+          на мобильных браузерах ведёт себя непредсказуемо. preload="metadata"
+          нужен Safari — трек, о котором он ничего не знает, стартовать
+          отказывается.
+        */}
+        <audio
+          ref={audioRef}
+          src={demo.audioUrl ?? undefined}
+          preload="metadata"
+          playsInline
+        />
       </div>
 
       {/* GERMAN TEXT LIVES ONLY INSIDE THIS BLOCK. Do not hoist it above. */}
       {revealed ? (
-        <p className="de-phrase mt-5 text-center">{GERMAN}</p>
+        <p className="de-phrase mt-5 text-center">{demo.germanText}</p>
       ) : (
         <p
           className={
@@ -117,14 +148,14 @@ export function MovaMoment({
       )}
 
       <div className="mt-5 space-y-2">
-        {OPTIONS_RU.map((option) => {
-          const isChosen = chosen === option.text;
-          const reveal = revealed && option.correct;
+        {demo.options.map((option) => {
+          const isChosen = chosen === option;
+          const reveal = revealed && option === demo.correct;
           return (
             <button
-              key={option.text}
+              key={option}
               type="button"
-              onClick={() => choose(option.text)}
+              onClick={() => choose(option)}
               disabled={revealed}
               className={[
                 'answer-opt',
@@ -136,7 +167,7 @@ export function MovaMoment({
               <span aria-hidden className="answer-mark">
                 {reveal ? '✓' : isChosen ? '✕' : '›'}
               </span>
-              <span>{option.text}</span>
+              <span>{option}</span>
             </button>
           );
         })}
@@ -145,7 +176,7 @@ export function MovaMoment({
       {revealed ? (
         <div className="mt-5">
           <p className="text-lg font-bold">
-            {chosen === CORRECT_TEXT_RU ? copy.momentCorrect : copy.momentIncorrect}
+            {chosen === demo.correct ? copy.momentCorrect : copy.momentIncorrect}
           </p>
           <Link
             href={testHref}

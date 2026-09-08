@@ -126,7 +126,7 @@ export function DiagnosticFlow({
         <p className="de-phrase mt-6 text-center">{question.germanText}</p>
       ) : (
         <p className="mt-6 text-center text-sm text-slate">
-          Озвучка появится вместе с полным курсом — пока слушай тишину и решай по контексту вариантов.
+          Немецкий покажем после ответа — сначала попробуй на слух.
         </p>
       )}
 

@@ -1,7 +1,9 @@
 import { ButtonLink } from '@/components/ui/Button';
 import { RuleProgress } from '@/components/ui/RuleProgress';
+import { signOut } from '@/app/auth/actions';
 import { Screen } from '@/components/ui/Screen';
 import { Tile } from '@/components/ui/Tile';
+import { InstallHint } from '@/components/InstallHint';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireOnboarded } from '@/lib/auth/guards';
 import { getCourseProgress, getNextLessonSlug } from '@/lib/content/course';
@@ -82,9 +84,13 @@ export default async function HomePage() {
           title="Что говорит прораб"
           hint="Слушай команды и понимай с первого раза"
         />
+        <Tile
+          href="/app/lessons"
+          glyph="📚"
+          title="Все уроки"
+          hint="Открыть любой заново — прогресс не сбросится"
+        />
         <Tile href="/app/profession" glyph="🛠" title="Моя профессия" hint="Слова и фразы твоей специальности" />
-        <Tile href="/app/say" glyph="💬" title="Быстро сказать" hint="Найди фразу и покажи немцу" />
-        <Tile href="/app/dictionary" glyph="🔎" title="Словарь" hint="Инструменты, материалы, размеры" />
         <Tile
           href="/app/review"
           glyph="🔁"
@@ -92,6 +98,20 @@ export default async function HomePage() {
           hint={weak > 0 ? `${weak} на повторении` : 'Пока нечего повторять'}
         />
       </nav>
+
+      <InstallHint />
+
+      {/*
+        Выхода в интерфейсе не было вовсе: серверное действие signOut
+        существовало, но ни к одной кнопке не подключалось. На общем телефоне
+        сменить аккаунт было нельзя.
+      */}
+      <form action={signOut} className="pt-10 pb-4">
+        <button type="submit" className="w-full py-4 text-center font-bold text-slate underline">
+          Выйти
+        </button>
+      </form>
+
     </Screen>
   );
 }

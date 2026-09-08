@@ -4,14 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 /**
- * Four destinations, never more. Navigation depth stays at one level so the
- * way back to Home is always a single tap, one-handed, thumb at the bottom.
+ * Глубина навигации — один уровень: путь домой всегда в один палец снизу.
+ *
+ * «Сказать» и «Словарь» убраны. Поиск по фразам дублировал курс, а словарь на
+ * 317 слов не тянул на отдельный раздел — оба занимали половину панели и
+ * уводили от единственного, ради чего сюда заходят: слушать и понимать.
+ * Экраны остались в коде и включаются обратно одной строкой, когда словарь
+ * дорастёт до самостоятельной ценности.
  */
 const ITEMS = [
   { href: '/app', label: 'Главная', glyph: '⌂' },
   { href: '/app/bauleiter', label: 'Прораб', glyph: '👷' },
-  { href: '/app/say', label: 'Сказать', glyph: '💬' },
-  { href: '/app/dictionary', label: 'Словарь', glyph: '🔎' },
+  { href: '/app/review', label: 'Повторить', glyph: '↻' },
 ] as const;
 
 export function BottomNav() {

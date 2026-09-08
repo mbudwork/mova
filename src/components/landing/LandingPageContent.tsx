@@ -12,6 +12,7 @@ import { getCourseScope } from '@/lib/content/scope';
 import { LocaleInit } from '@/components/landing/LocaleInit';
 import { FaqItem } from '@/components/landing/FaqItem';
 import { Brand } from '@/components/ui/Brand';
+import { getDemoPhrase } from '@/lib/content/public-demo';
 
 /**
  * The V2 landing, shared by /ru and /uk. Locale changes copy and routes;
@@ -21,7 +22,7 @@ import { Brand } from '@/components/ui/Brand';
 export async function LandingPageContent({ locale }: { locale: Locale }) {
   const copy = LANDING_COPY[locale];
   const routes = landingRoutes(locale);
-  const scope = await getCourseScope();
+  const [scope, demo] = await Promise.all([getCourseScope(), getDemoPhrase(locale)]);
 
   return (
     <main className="pb-24">
@@ -57,7 +58,9 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
           <p className="h-sub mt-5">{copy.heroSub}</p>
 
           <div className="mt-9">
-            <MovaMoment copy={copy} testHref={routes.test} variant="hero" />
+            {demo ? (
+              <MovaMoment copy={copy} testHref={routes.test} demo={demo} variant="hero" />
+            ) : null}
           </div>
 
           <div className="mt-9 space-y-3">
@@ -112,7 +115,9 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
           <ShowcaseSteps copy={copy} />
         </div>
         <div className="mt-6">
-          <MovaMoment copy={copy} testHref={routes.test} variant="showcase" />
+          {demo ? (
+            <MovaMoment copy={copy} testHref={routes.test} demo={demo} variant="showcase" />
+          ) : null}
         </div>
         <CtaLink
           event="hero_test_click"

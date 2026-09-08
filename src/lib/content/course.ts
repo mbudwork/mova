@@ -255,3 +255,59 @@ export async function getListeningSession(locale: string, limit = 8): Promise<Ex
 
   return audible.map((p) => ({ ...p, options: buildOptions(p, audible) }));
 }
+
+export type LessonListItem = {
+  slug: string;
+  title: string;
+  moduleSlug: string;
+  orderIndex: number;
+  completed: boolean;
+  phraseCount: number;
+};
+
+/**
+ * Все уроки, доступные пользователю, с отметкой о прохождении.
+ *
+ * До сих пор попасть в урок можно было только через кнопку «Продолжить»,
+ * которая ведёт на следующий непройденный. Пройденный урок становился
+ * недостижимым: списка не было нигде, и вернуться к нему получалось только
+ * набрав адрес руками. Для курса, где повторение — половина смысла, это
+ * потеря, а не мелочь: сама страница урока повторение допускает и даже
+ * подписывает «это повторение», просто дойти до неё было нечем.
+ */
+export async function getLessonList(locale: string): Promise<LessonListItem[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('lessons')
+    .select(
+      `id, slug, order_index, is_published,
+       modules!inner(slug),
+       lesson_translations(title, language_code),
+       lesson_phrases(role)`,
+    )
+    .eq('is_published', true)
+    .order('order_index');
+
+  if (error || !data) return [];
+
+  const { data: progress } = await supabase
+    .from('lesson_progress')
+    .select('lesson_id, status');
+
+  const done = new Set(
+    (progress ?? []).filter((r) => r.status === 'completed').map((r) => r.lesson_id),
+  );
+
+  return data.map((row) => {
+    const translation = pickByLocale(row.lesson_translations, locale);
+    return {
+      slug: row.slug,
+      title: translation?.title ?? row.slug,
+      moduleSlug: row.modules.slug,
+      orderIndex: row.order_index,
+      completed: done.has(row.id),
+      phraseCount: row.lesson_phrases.filter((lp) => lp.role === 'primary').length,
+    };
+  });
+}

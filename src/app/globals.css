@@ -126,14 +126,29 @@
     background: var(--color-paper);
     color: var(--color-ink);
     border-radius: 26px;
-    box-shadow: 0 20px 50px -30px rgba(10, 11, 13, 0.25);
+    /*
+      Двойная тень вместо одной: узкая контактная у самой карточки и широкая
+      мягкая под ней. Одиночная размытая тень читается как «наклейка поверх
+      фона», две дают ощущение веса — то, чем дорогой интерфейс отличается от
+      шаблонного.
+    */
+    box-shadow:
+      0 1px 2px rgba(10, 11, 13, 0.04),
+      0 24px 60px -32px rgba(10, 11, 13, 0.28);
   }
 
   .card-dark {
-    background: var(--color-ink-2);
+    /*
+      Едва заметный градиент вместо плоской заливки. На тёмных поверхностях
+      ровный цвет выглядит мёртвым: у настоящего материала свет сверху всегда
+      сильнее. Разница в пару процентов, но именно она отличает «чёрный
+      прямоугольник» от панели.
+    */
+    background: linear-gradient(168deg, #1a1d22, var(--color-ink-2) 62%);
     border: 1px solid var(--line);
     border-radius: 26px;
     color: var(--color-cream);
+    box-shadow: 0 30px 70px -40px rgba(0, 0, 0, 0.7);
   }
 
   .card-gold {
@@ -249,15 +264,28 @@
     justify-content: center;
     gap: 10px;
     min-height: 60px;
-    padding: 0 30px;
+    padding-left: 26px;
+    padding-right: 26px;
     border-radius: 100px;
     border: none;
     cursor: pointer;
     font-size: 1.02rem;
     font-weight: 700;
     letter-spacing: -0.005em;
+    line-height: 1.25;
     text-decoration: none;
-    white-space: nowrap;
+    text-align: center;
+    /*
+      Было white-space: nowrap — и длинные русские подписи вроде «А сколько
+      поймёшь ты? Пройти тест из 7 команд» вылезали за края капсулы на
+      телефоне. Русский в среднем длиннее английского на треть, макет
+      рисовался на коротких строках, и запрет переноса это скрывал до первой
+      живой фразы. Теперь строка переносится, а высота растёт от содержимого.
+    */
+    text-wrap: balance;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    height: auto;
     transition:
       transform 0.15s var(--ease),
       box-shadow 0.15s var(--ease);
@@ -274,11 +302,17 @@
   }
 
   .btn-gold {
-    background: linear-gradient(180deg, var(--color-gold-2), var(--color-gold));
+    /*
+      Три остановки, а не две: блик сверху, основной тон, лёгкое затемнение
+      у нижней кромки. Двухцветный градиент на золоте выглядит как заливка,
+      трёхцветный — как металл.
+    */
+    background: linear-gradient(180deg, #ffd873, var(--color-gold) 55%, #e0a413);
     color: #241a02;
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.4) inset,
-      0 12px 24px -10px rgba(240, 180, 41, 0.55);
+      0 1px 0 rgba(255, 255, 255, 0.45) inset,
+      0 -1px 0 rgba(120, 80, 0, 0.25) inset,
+      0 14px 28px -12px rgba(240, 180, 41, 0.5);
   }
 
   .btn-gold:active {
@@ -389,6 +423,8 @@
     переключается сам, поэтому вызывающему коду не нужно знать, где он лежит.
   */
   .answer-opt {
+    /* Тень-подложка: варианты перестают выглядеть строками таблицы. */
+    box-shadow: 0 1px 2px rgba(10, 11, 13, 0.04);
     display: flex;
     align-items: center;
     gap: 12px;
