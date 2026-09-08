@@ -31,7 +31,12 @@ export function getStripe(): Stripe {
 export function checkoutUrls() {
   const base = env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
   return {
-    success: `${base}/purchase/success?session_id={CHECKOUT_SESSION_ID}`,
+    /*
+      Возврат идёт в route handler, а не сразу на страницу успеха: вход после
+      оплаты требует записи кук, а Server Component в Next этого не умеет.
+      Обработчик впускает покупателя и уже потом отдаёт его странице.
+    */
+    success: `${base}/auth/checkout-return?session_id={CHECKOUT_SESSION_ID}`,
     cancel: `${base}/purchase?canceled=1`,
   };
 }

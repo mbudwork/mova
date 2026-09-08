@@ -17,7 +17,13 @@ export async function setPassword(_prev: PasswordResult, formData: FormData): Pr
   if (password.length < 8) return { ok: false, error: 'Пароль — минимум 8 символов.' };
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.updateUser({ password });
+  // Пароль и снятие метки одним запросом: если бы это были два вызова и
+  // второй упал, человека продолжало бы кидать на установку пароля, который
+  // он уже задал.
+  const { error } = await supabase.auth.updateUser({
+    password,
+    data: { needs_password: false },
+  });
 
   if (error) {
     console.error('[purchase] set password failed', error);

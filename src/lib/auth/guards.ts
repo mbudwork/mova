@@ -59,7 +59,26 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
 export async function requireProfile(): Promise<SessionProfile> {
   const profile = await getSessionProfile();
   if (!profile) redirect('/login');
+
+  /*
+    Аккаунт, созданный оплатой без регистрации, входит по одноразовому токену
+    и пароля не имеет. Пока пароль не задан, войти можно только по живой куке
+    — очистка браузера или второй телефон отрезают человека от оплаченного
+    курса, а восстановление идёт письмом, которое может и не дойти.
+
+    Поэтому экран с паролем не предложение, а шлагбаум: один раз, одно поле,
+    сразу после оплаты. Проверка стоит именно здесь, до онбординга, чтобы
+    покупатель не успел уйти вглубь приложения и закрыть вкладку.
+  */
+  if (await needsPassword()) redirect('/set-password');
+
   return profile;
+}
+
+/** Помечен ли аккаунт как созданный оплатой и ещё без пароля. */
+export async function needsPassword(): Promise<boolean> {
+  const user = await getCurrentUser();
+  return user?.user_metadata?.needs_password === true;
 }
 
 export async function requireOnboarded(): Promise<SessionProfile> {

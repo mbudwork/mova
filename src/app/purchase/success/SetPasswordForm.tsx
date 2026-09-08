@@ -24,7 +24,14 @@ export function SetPasswordForm() {
 
   if (state?.ok) {
     return (
-      <p className="notice notice-good">Пароль сохранён — теперь можно входить с любого телефона.</p>
+      <div className="space-y-4">
+        <p className="notice notice-good">
+          Пароль сохранён — теперь можно входить с любого телефона.
+        </p>
+        <a href="/app" className="btn btn-gold btn-lg btn-block">
+          Начать урок
+        </a>
+      </div>
     );
   }
 
