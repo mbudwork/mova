@@ -1,274 +1,398 @@
-import { CtaLink } from '@/components/landing/CtaLink';
-import { MovaMoment } from '@/components/landing/MovaMoment';
-import { OfferSection } from '@/components/landing/OfferSection';
-import { ShowcaseSteps } from '@/components/landing/ShowcaseSteps';
-import { StickyCta } from '@/components/landing/StickyCta';
-import { SectionTracker, ViewTracker } from '@/components/landing/LandingTracker';
-import { VideoBlock } from '@/components/landing/VideoBlock';
-import { LANDING_COPY } from '@/lib/landing-copy';
-import { landingRoutes } from '@/lib/landing-routes';
-import type { Locale } from '@/lib/locale';
-import { getCourseScope } from '@/lib/content/scope';
-import { LocaleInit } from '@/components/landing/LocaleInit';
-import { FaqItem } from '@/components/landing/FaqItem';
-import { Brand } from '@/components/ui/Brand';
-import { getDemoPhrase } from '@/lib/content/public-demo';
+import Link from "next/link";
+import { CtaLink } from "@/components/landing/CtaLink";
+import { MovaMoment } from "@/components/landing/MovaMoment";
+import { StickyCta } from "@/components/landing/StickyCta";
+import {
+  SectionTracker,
+  ViewTracker,
+} from "@/components/landing/LandingTracker";
+import { LocaleInit } from "@/components/landing/LocaleInit";
+import { FaqItem } from "@/components/landing/FaqItem";
+import { Brand } from "@/components/ui/Brand";
+import { LANDING_COPY } from "@/lib/landing-copy";
+import { LANDING_SECTIONS } from "@/lib/landing-sections";
+import { landingRoutes } from "@/lib/landing-routes";
+import type { Locale } from "@/lib/locale";
+import { getCourseScope } from "@/lib/content/scope";
+import { getDemoPhrase } from "@/lib/content/public-demo";
+import { PRODUCT } from "@/lib/pricing";
 
 /**
- * The V2 landing, shared by /ru and /uk. Locale changes copy and routes;
- * structure, the MOVA-moment guarantee, and CTA wiring are identical — a
- * bilingual landing is not two designs, it is one design read twice.
+ * Лендинг, собранный по макету mova-landing-v4-premium-preview.html.
+ *
+ * Порядок секций и их содержание взяты оттуда: потеря смысла → путь →
+ * повторение → результат → объём → цена → вопросы → финальный призыв.
+ * Прошлая версия несла новые цвета поверх старой композиции, из-за чего
+ * выглядела прежней.
+ *
+ * Демо «Что сказал прораб?» теперь ровно одно — внутри телефона в шапке.
+ * Раньше тот же компонент рисовался ещё раз ниже, в разделе «как это
+ * работает»; со случайными фразами дубль стал очевиден: два одинаковых
+ * заголовка с разными командами.
+ *
+ * /ru и /uk — один макет, прочитанный дважды: меняются тексты и адреса,
+ * структура нет.
  */
 export async function LandingPageContent({ locale }: { locale: Locale }) {
   const copy = LANDING_COPY[locale];
+  const t = LANDING_SECTIONS[locale];
   const routes = landingRoutes(locale);
-  const [scope, demo] = await Promise.all([getCourseScope(), getDemoPhrase(locale)]);
+  const [scope, demo] = await Promise.all([
+    getCourseScope(),
+    getDemoPhrase(locale),
+  ]);
+
+  const coreCount = 232;
+  const profCount = 51;
 
   return (
-    <main className="pb-24">
+    <main>
       <LocaleInit locale={locale} />
       <ViewTracker event="landing_view" />
 
-      {/* ---------------------------------------------------------- HERO ---
-          Тёмная секция во всю ширину с золотыми бликами — первый экран
-          премиум-макета. Демонстрация (MOVA-момент) остаётся внутри героя, а
-          не уезжает под сгиб: это доказательство, а не картинка телефона. */}
+      {/* -------------------------------------------------------- TOPBAR --- */}
+      <nav className="topbar">
+        <div className="wrap flex items-center justify-between">
+          <Brand />
+          <CtaLink
+            event="hero_test_click"
+            href={routes.test}
+            className="btn btn-gold nav-cta"
+          >
+            {t.navCta}
+          </CtaLink>
+        </div>
+      </nav>
+
+      {/* ---------------------------------------------------------- HERO --- */}
       <section
         id="hero"
-        className="surface-dark relative overflow-hidden pb-16 pt-12"
+        className="surface-dark overflow-hidden pb-16 pt-[132px]"
         style={{
           background:
-            'radial-gradient(ellipse 900px 560px at 22% 8%, rgba(240,180,41,.16), transparent 60%),' +
-            'radial-gradient(ellipse 700px 700px at 84% 30%, rgba(240,180,41,.10), transparent 55%),' +
-            'var(--color-ink)',
+            "radial-gradient(ellipse 900px 560px at 22% 8%, rgba(240,180,41,.16), transparent 60%)," +
+            "radial-gradient(ellipse 700px 700px at 84% 30%, rgba(240,180,41,.10), transparent 55%)," +
+            "var(--color-ink)",
         }}
       >
-        <div className="mx-auto w-full max-w-[560px] px-5">
-          {/*
-            Логотип и есть надзаголовок. Раньше здесь стоял и <Brand/>, и
-            copy.heroKicker — а heroKicker равен строке 'MOVA', так что
-            получалось «MOVA · MOVA» с золотой точкой между ними.
-          */}
-          <Brand muted />
+        <div className="wrap narrow">
+          <p className="eyebrow">{copy.heroKicker}</p>
 
-          <h1 className="mt-4 whitespace-pre-line text-[2.4rem] font-extrabold leading-[.99] tracking-[-.035em] text-cream">
+          <h1 className="h-hero mt-4 whitespace-pre-line text-cream">
             {copy.heroTitle}
           </h1>
 
           <p className="h-sub mt-5">{copy.heroSub}</p>
 
-          <div className="mt-9">
-            {demo ? (
-              <MovaMoment copy={copy} testHref={routes.test} demo={demo} variant="hero" />
-            ) : null}
-          </div>
-
-          <div className="mt-9 space-y-3">
+          <div className="mt-8">
             <CtaLink
               event="hero_test_click"
               href={routes.test}
-              className="btn btn-gold btn-lg btn-block"
+              className="btn btn-gold btn-lg"
             >
               {copy.heroCtaPrimary} <span className="cta-arrow">→</span>
             </CtaLink>
-            <a href="#kak-eto-rabotaet" className="btn btn-ghost btn-block">
-              {copy.heroCtaSecondary}
-            </a>
-            <p className="foot-caption pt-1 text-center">{copy.heroFootnote}</p>
           </div>
 
-          {/* Числа курса живые: приходят из getCourseScope(), а не зашиты. */}
-          <div className="mt-9 flex flex-wrap gap-x-6 gap-y-2 text-[.86rem] font-semibold text-mist">
+          <p className="foot-caption mt-4">{copy.heroFootnote}</p>
+
+          {/* Числа живые: приходят из getCourseScope(), а не зашиты в макет. */}
+          <div className="hero-proof">
             <span>
-              <b className="font-extrabold text-cream tnum">{scope.phrases}</b> фраз
+              <b className="tnum">{scope.phrases}+</b> фраз
             </span>
             <span>
-              <b className="font-extrabold text-cream tnum">{scope.lessons}</b> уроков
+              <b className="tnum">{coreCount}</b> CORE
             </span>
             <span>
-              <b className="font-extrabold text-cream tnum">{scope.vocabulary}</b> слов
+              <b className="tnum">{scope.trades.length}</b> профессий
+            </span>
+            <span>
+              <b className="tnum">{PRODUCT.price?.formatted ?? "€29"}</b> один
+              раз
             </span>
           </div>
-        </div>
-      </section>
 
-      {/* ------------------------------------------------- RECOGNITION --- */}
-      <section className="mx-auto mt-24 w-full max-w-[560px] px-5">
-        <h2 className="h-sec">{copy.recognitionTitle}</h2>
-        <ul className="mt-6 space-y-3">
-          {copy.recognitionItems.map((line) => (
-            <li
-              key={line}
-              className="notice text-lg leading-snug"
-            >
-              {line}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-6 text-slate">{copy.recognitionFootnote}</p>
-      </section>
-
-      {/* --------------------------------------------------- SHOWCASE --- */}
-      <section id="kak-eto-rabotaet" className="mx-auto mt-24 w-full max-w-[560px] px-5">
-        <h2 className="h-sec">{copy.showcaseTitle}</h2>
-        <div className="mt-6">
-          <ShowcaseSteps copy={copy} />
-        </div>
-        <div className="mt-6">
+          {/* Телефон с живым демо — единственное место, где оно есть. */}
           {demo ? (
-            <MovaMoment copy={copy} testHref={routes.test} demo={demo} variant="showcase" />
-          ) : null}
-        </div>
-        <CtaLink
-          event="hero_test_click"
-          properties={{ placement: 'showcase' }}
-          href={routes.test}
-          className="btn btn-ghost btn-block mt-4 bg-paper"
-        >
-          {copy.showcaseCta}
-        </CtaLink>
-      </section>
-
-      {/* ---------------------------------------------- VS TRANSLATOR --- */}
-      <section className="mx-auto mt-24 w-full max-w-[560px] px-5">
-        <h2 className="h-sec">{copy.translatorTitle}</h2>
-        <div className="mt-6 space-y-3">
-          <div className="card p-5">
-            <p className="eyebrow">{copy.translatorTranslatorLabel}</p>
-            <p className="mt-2 leading-snug">{copy.translatorTranslatorText}</p>
-          </div>
-          <div className="notice notice-gold">
-            <p className="eyebrow">{copy.translatorMovaLabel}</p>
-            <p className="mt-2 font-bold leading-snug">{copy.translatorMovaText}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* --------------------------------------------------- BEFORE/AFTER - */}
-      <section className="mx-auto mt-24 w-full max-w-[560px] px-5">
-        <h2 className="h-sec">{copy.beforeAfterTitle}</h2>
-
-        <div className="mt-6 card p-6">
-          <p className="eyebrow">MOVA</p>
-          <p className="mt-2 text-xl font-bold leading-tight">{copy.beforeAfterForeman}</p>
-        </div>
-
-        <div className="mt-3 rounded-[18px] border-l-8 border-bad bg-paper p-5">
-          <p className="eyebrow">{copy.beforeLabel}</p>
-          <p className="mt-2 text-lg leading-snug">{copy.beforeText}</p>
-        </div>
-
-        <div className="mt-3 rounded-[18px] border-l-8 border-good bg-paper p-5">
-          <p className="eyebrow">{copy.afterLabel}</p>
-          <p className="mt-2 text-lg font-bold leading-snug">{copy.afterText}</p>
-        </div>
-
-        <p className="mt-6 text-slate">{copy.beforeAfterFootnote}</p>
-      </section>
-
-      {/* -------------------------------------------------------- VIDEO --- */}
-      <section className="mx-auto mt-24 w-full max-w-[560px] px-5">
-        <h2 className="h-sec">{copy.videoTitle}</h2>
-        <div className="mt-6">
-          <VideoBlock pendingLabel={copy.videoPending} pendingSub={copy.videoPendingSub} />
-        </div>
-      </section>
-
-      {/* -------------------------------------------------------- SCOPE --- */}
-      <section className="mx-auto mt-24 w-full max-w-[560px] px-5">
-        <h2 className="h-sec">{copy.scopeTitle}</h2>
-        <dl className="mt-6 grid grid-cols-3 gap-3">
-          {[
-            { value: scope.lessons, label: copy.scopeLessons },
-            { value: scope.phrases, label: copy.scopePhrases },
-            { value: scope.vocabulary, label: copy.scopeVocab },
-          ].map((item) => (
-            <div key={item.label} className="card-dark p-5 text-center">
-              <dt className="tnum text-[2rem] font-extrabold leading-none text-gold-2">
-                {item.value}
-              </dt>
-              <dd className="mt-2 text-sm leading-tight text-mist">{item.label}</dd>
+            <div className="relative mt-14 flex justify-center">
+              <span aria-hidden className="glow-blob" />
+              <div className="device w-full max-w-[320px]">
+                <div className="device-screen">
+                  <span aria-hidden className="device-notch" />
+                  <MovaMoment
+                    copy={copy}
+                    testHref={routes.test}
+                    demo={demo}
+                    variant="hero"
+                  />
+                </div>
+              </div>
             </div>
-          ))}
-        </dl>
-        <p className="mt-5 text-slate">{copy.scopeFootnote}</p>
-      </section>
-
-      {/* ------------------------------------------------------ OFFER --- */}
-      <section id="dostup" className="mx-auto mt-24 w-full max-w-[560px] px-5">
-        <SectionTracker event="offer_viewed" id="dostup" />
-        <h2 className="h-sec">{copy.offerTitle}</h2>
-        <div className="mt-6">
-          <OfferSection copy={copy} checkoutHref={routes.checkout} />
-        </div>
-      </section>
-
-      {/* ----------------------------------------------------------- FAQ -- */}
-      <section className="mx-auto mt-24 w-full max-w-[560px] px-5">
-        <h2 className="h-sec">{copy.faqTitle}</h2>
-        <div className="mt-6 space-y-3">
-          {copy.faq.map((item) => (
-            <FaqItem key={item.q} q={item.q} a={item.a} />
-          ))}
-        </div>
-      </section>
-
-      {/* ---------------------------------------------------- FINAL CTA --- */}
-      <section className="mx-auto mt-24 w-full max-w-[560px] px-5">
-        <div
-          className="surface-dark relative overflow-hidden rounded-[32px] p-8"
-          style={{
-            background:
-              'radial-gradient(circle 320px at 85% 0%, rgba(240,180,41,.22), transparent 70%),' +
-              'linear-gradient(165deg,#1c1e23,var(--color-ink) 65%)',
-            border: '1px solid rgba(240,180,41,.4)',
-          }}
-        >
-          <h2 className="h-sec">{copy.finalTitle}</h2>
-          <p className="body-copy mt-3">{copy.finalSub}</p>
-          <CtaLink
-            event="hero_test_click"
-            properties={{ placement: 'final' }}
-            href={routes.test}
-            className="btn btn-gold btn-lg btn-block mt-7"
-          >
-            {copy.finalCta} <span className="cta-arrow">→</span>
-          </CtaLink>
-        </div>
-
-        <footer className="mt-10 space-y-4 text-sm text-slate">
-          <p>{copy.footerDisclaimer}</p>
-          {!copy.reviewed ? (
-            <p className="rounded-[10px] border border-cream-deep bg-paper px-3 py-2">
-              Український переклад — чернетка, ще не перевірена носієм мови.
-            </p>
           ) : null}
-          <nav className="flex flex-wrap gap-x-4 gap-y-2">
-            <a href="/legal/terms" className="underline">
-              Условия
-            </a>
-            <a href="/legal/privacy" className="underline">
-              Конфиденциальность
-            </a>
-            <a href="/legal/cookies" className="underline">
-              Cookie
-            </a>
-            <a href="/legal/contact" className="underline">
-              Контакты
-            </a>
-          </nav>
-          <p>
-            {locale === 'ru' ? 'Уже есть доступ?' : 'Вже є доступ?'}{' '}
-            <a href="/login" className="font-bold text-gold-deep underline">
-              {copy.footerLogin}
-            </a>
-          </p>
-        </footer>
+        </div>
       </section>
 
-      <StickyCta copy={copy} testHref={routes.test} checkoutHref={routes.checkout} />
+      {/* ------------------------------------------------ ПОТЕРЯ СМЫСЛА --- */}
+      <section className="py-24">
+        <div className="wrap narrow">
+          <p className="eyebrow">{t.lossEyebrow}</p>
+          <h2 className="h-sec mt-4">{t.lossTitle}</h2>
+
+          <div className="bubble mt-9">
+            <span className="fade">„ … </span>
+            <b>{t.lossBubbleKnown1}</b>
+            <span className="fade"> … </span>
+            <b>{t.lossBubbleKnown2}</b>
+            <span className="fade"> … “</span>
+          </div>
+          <p className="mt-3 text-sm text-slate">{t.lossBubbleCaption}</p>
+
+          <div className="decomp mt-6">
+            {t.lossDecomp.map((cell) => (
+              <div key={cell.label} className="cell">
+                <span>{cell.label}</span>
+                <b>{cell.word}</b>
+              </div>
+            ))}
+          </div>
+
+          <p className="body-copy mt-6">{t.lossNote}</p>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------- ТВОЙ ПУТЬ - */}
+      <section className="surface-dark py-24">
+        <div className="wrap narrow">
+          <p className="eyebrow">{t.pathEyebrow}</p>
+          <h2 className="h-sec mt-4">{t.pathTitle}</h2>
+          <p className="h-sub mt-4">{t.pathSub}</p>
+
+          <div className="pill-row -mx-6 mt-7 px-6">
+            {t.pathProfessions.map((name, i) => (
+              <span
+                key={name}
+                className={`pill ${i === 0 ? "pill-active" : ""}`}
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+
+          <div className="prof-card mt-6">
+            <div className="path-num text-cream tnum">{coreCount}</div>
+            <div className="text-sm text-mist">{t.pathCore}</div>
+            <div className="path-plus mt-2">+</div>
+            <div className="path-num text-cream tnum">{profCount}</div>
+            <div className="text-sm text-mist">{t.pathProf}</div>
+            <div
+              aria-hidden
+              className="mx-auto my-4 h-8 w-px bg-[var(--line)]"
+            />
+            <div className="prof-total tnum">{coreCount + profCount}</div>
+            <p className="mt-2 text-sm text-mist">{t.pathTotalCaption}</p>
+          </div>
+
+          <div className="mt-8">
+            <CtaLink
+              event="hero_test_click"
+              href={routes.test}
+              className="btn btn-ghost btn-block"
+            >
+              {t.pathCta}
+            </CtaLink>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------- ПОВТОРЕНИЕ ----- */}
+      <section className="py-24">
+        <div className="wrap narrow">
+          <p className="eyebrow">{t.repeatEyebrow}</p>
+          <h2 className="h-sec mt-4">{t.repeatTitle}</h2>
+          <p className="body-copy mt-4">{t.repeatSub}</p>
+
+          <div className="mt-12 flex flex-wrap items-start justify-center">
+            {t.repeatStates.map((state, i) => (
+              <div key={state} className="flex items-start">
+                <div className="flex w-[92px] flex-col items-center gap-3">
+                  <span
+                    aria-hidden
+                    className={`mem-dot ${i >= t.repeatStates.length - 2 ? "mem-dot-on" : ""}`}
+                  />
+                  <span
+                    className={`text-center text-sm font-bold ${
+                      i >= t.repeatStates.length - 2 ? "text-ink" : "text-slate"
+                    }`}
+                  >
+                    {state}
+                  </span>
+                </div>
+                {i < t.repeatStates.length - 1 ? (
+                  <span aria-hidden className="mem-connector mt-2" />
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* --------------------------------------------------- РЕЗУЛЬТАТ ---- */}
+      <section className="surface-dark py-24">
+        <div className="wrap narrow">
+          <p className="eyebrow">{t.resultEyebrow}</p>
+          <h2 className="h-sec mt-4">{t.resultTitle}</h2>
+
+          <div className="mt-10 space-y-4">
+            <div className="split-panel split-before">
+              <p className="tag">{t.resultForemanTag}</p>
+              <p className="txt">{t.resultForeman}</p>
+            </div>
+            <div className="split-panel split-before">
+              <p className="tag">{t.resultBeforeTag}</p>
+              <p className="txt text-mist">{t.resultBefore}</p>
+            </div>
+            <div className="split-panel split-after">
+              <p className="tag">{t.resultAfterTag}</p>
+              <p className="txt">{t.resultAfter}</p>
+            </div>
+          </div>
+
+          <p className="body-copy mt-6">{t.resultNote}</p>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------- ЧТО ВНУТРИ ----- */}
+      <section className="py-24">
+        <div className="wrap narrow">
+          <p className="eyebrow">{t.insideEyebrow}</p>
+          <h2 className="h-sec mt-4">{t.insideTitle}</h2>
+
+          <dl className="mt-12 grid grid-cols-2 gap-8 text-center">
+            <div>
+              <dt className="scope-num tnum">{scope.phrases}+</dt>
+              <dd className="scope-cap">{t.insideStats[0]!.caption}</dd>
+            </div>
+            <div>
+              <dt className="scope-num tnum">{coreCount}</dt>
+              <dd className="scope-cap">{t.insideStats[1]!.caption}</dd>
+            </div>
+            <div>
+              <dt className="scope-num tnum">{scope.trades.length}</dt>
+              <dd className="scope-cap">{t.insideStats[2]!.caption}</dd>
+            </div>
+            <div>
+              <dt className="scope-num tnum">{t.insideStats[3]!.value}</dt>
+              <dd className="scope-cap">{t.insideStats[3]!.caption}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------- ЦЕНА ----- */}
+      <SectionTracker event="pricing_viewed" id="price" />
+      <section id="price" className="surface-dark py-24">
+        <div className="wrap narrow">
+          <p className="eyebrow">{t.priceEyebrow}</p>
+          <h2 className="h-sec mt-4">{t.priceTitle}</h2>
+
+          <div className="price-card mt-11">
+            <p className="eyebrow">{t.priceProduct}</p>
+            <p className="price-num tnum mt-4">
+              {PRODUCT.price?.formatted ?? "€29"}
+            </p>
+            <p className="mt-2 text-sm text-mist">{t.priceNote}</p>
+
+            <ul className="price-list">
+              {t.priceList.map((line) => (
+                <li key={line}>
+                  <b aria-hidden>✓</b>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="relative mt-8">
+              <CtaLink
+                event="purchase_clicked"
+                href={routes.checkout}
+                className="btn btn-gold btn-lg btn-block"
+              >
+                {t.priceCta} <span className="cta-arrow">→</span>
+              </CtaLink>
+            </div>
+
+            <p className="foot-caption relative mt-5 text-center">
+              {t.priceDoubt}{" "}
+              <Link
+                href={routes.test}
+                className="font-bold text-gold-2 underline"
+              >
+                {t.priceDoubtCta}
+              </Link>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------- FAQ ----- */}
+      <section className="py-24">
+        <div className="wrap narrow">
+          <p className="eyebrow">{t.faqEyebrow}</p>
+          <h2 className="h-sec mt-4">{t.faqTitle}</h2>
+          <div className="mt-8">
+            {copy.faq.map((item) => (
+              <FaqItem key={item.q} q={item.q} a={item.a} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------- ФИНАЛЬНЫЙ БЛОК ---- */}
+      <section id="test" className="surface-dark py-24 pb-40">
+        <div className="wrap narrow">
+          <p className="eyebrow">{t.finalEyebrow}</p>
+          <h2 className="h-sec mt-4">{t.finalTitle}</h2>
+          <p className="h-sub mt-4">{t.finalSub}</p>
+
+          <div className="mt-9">
+            <CtaLink
+              event="hero_test_click"
+              properties={{ placement: "final" }}
+              href={routes.test}
+              className="btn btn-gold btn-lg btn-block"
+            >
+              {t.finalCta} <span className="cta-arrow">→</span>
+            </CtaLink>
+          </div>
+          <p className="foot-caption mt-4 text-center">{t.finalNote}</p>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------ ПОДВАЛ ---- */}
+      <footer className="wrap narrow py-12">
+        <p className="text-sm text-slate">{t.footerDisclaimer}</p>
+        <div className="mt-5 flex flex-wrap gap-5 text-sm font-bold">
+          <Link href="/legal/terms" className="text-gold-deep underline">
+            {t.footerTerms}
+          </Link>
+          <Link href="/legal/privacy" className="text-gold-deep underline">
+            {t.footerPrivacy}
+          </Link>
+          <Link href="/legal/contact" className="text-gold-deep underline">
+            {t.footerContact}
+          </Link>
+          <Link href={routes.test} className="text-gold-deep underline">
+            {t.footerTest}
+          </Link>
+        </div>
+      </footer>
+
+      <StickyCta
+        copy={copy}
+        testHref={routes.test}
+        checkoutHref={routes.checkout}
+      />
     </main>
   );
 }
-
-
