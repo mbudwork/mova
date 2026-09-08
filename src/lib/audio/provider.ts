@@ -68,7 +68,10 @@ class ElevenLabsAudioProvider implements AudioProvider {
     // or shared beyond a single playback.
     const { data: signed, error: signError } = await supabase.storage
       .from('audio')
-      .createSignedUrl(asset.storage_path, 60 * 10);
+      // An hour, not ten minutes: the URL is minted when the lesson page
+      // renders, and a learner who pauses mid-lesson must not come back to a
+      // dead link. Still short-lived — it is not meant to be cached or shared.
+      .createSignedUrl(asset.storage_path, 60 * 60);
 
     if (signError || !signed) return null;
 
