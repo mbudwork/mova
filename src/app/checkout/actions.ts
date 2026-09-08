@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { requireUser } from '@/lib/auth/guards';
+import { getCurrentUser, requireUser } from '@/lib/auth/guards';
 import { checkoutMode } from '@/lib/pricing';
 import { env, paymentsMode } from '@/lib/config/env';
 import { getStripe, checkoutUrls } from '@/lib/payments/stripe';
@@ -80,7 +80,10 @@ export async function submitCheckoutLead(locale: string): Promise<LeadResult> {
  * closes the tab on the payment page must not end up with access.
  */
 export async function startStripeCheckout(locale: string): Promise<CheckoutSessionResult> {
-  const user = await requireUser();
+  // getCurrentUser, не requireUser: оплата возможна без аккаунта. Залогиненный
+  // покупатель по-прежнему привязывается к своему аккаунту сразу, анонимный —
+  // по адресу почты, который соберёт страница Stripe.
+  const user = await getCurrentUser();
 
   if (checkoutMode !== 'stripe' || paymentsMode !== 'stripe') {
     return { ok: false, error: GENERIC_ERROR };
@@ -91,9 +94,10 @@ export async function startStripeCheckout(locale: string): Promise<CheckoutSessi
     return { ok: false, error: GENERIC_ERROR };
   }
 
-  // The lead is recorded before redirecting, not after paying: it is the only
-  // trace left of someone who reached the payment page and dropped off.
-  await submitCheckoutLead(locale);
+  // Заявка пишется до перехода на оплату, а не после платежа: это
+  // единственный след человека, дошедшего до кассы и передумавшего.
+  // У анонима записывать нечего — checkout_leads привязана к профилю.
+  if (user) await submitCheckoutLead(locale);
 
   try {
     const stripe = getStripe();
@@ -104,11 +108,18 @@ export async function startStripeCheckout(locale: string): Promise<CheckoutSessi
       line_items: [{ price: env.STRIPE_PRICE_ID, quantity: 1 }],
       success_url: urls.success,
       cancel_url: urls.cancel,
-      customer_email: user.email ?? undefined,
-      // Both are set on purpose. client_reference_id survives in the dashboard
-      // for a human reading the payment; metadata is what the webhook reads.
-      client_reference_id: user.id,
-      metadata: { user_id: user.id, product_code: 'FULL_ACCESS', locale },
+      // Для анонима поле не задаём — Stripe спросит почту сам, и она придёт
+      // в вебхук как customer_details.email.
+      customer_email: user?.email ?? undefined,
+      // client_reference_id остаётся в дашборде для человека, читающего
+      // платёж; metadata читает вебхук. У анонима обоих нет, и вебхук тогда
+      // опирается на почту.
+      client_reference_id: user?.id,
+      metadata: {
+        ...(user ? { user_id: user.id } : {}),
+        product_code: 'FULL_ACCESS',
+        locale,
+      },
       locale: locale === 'uk' ? 'ru' : 'ru',
     });
 

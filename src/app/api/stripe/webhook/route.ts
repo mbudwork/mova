@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 import { getStripe } from '@/lib/payments/stripe';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { findOrCreateBuyer } from '@/lib/payments/buyer';
 import { env, paymentsMode } from '@/lib/config/env';
 
 /**
@@ -61,12 +62,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  const userId = session.metadata?.user_id ?? session.client_reference_id;
+  /*
+    Залогиненный покупатель приходит с user_id в metadata. Аноним — без него,
+    и тогда аккаунт заводится здесь, по адресу, который Stripe собрал на
+    странице оплаты.
+
+    Порядок важен: сначала metadata, и только потом почта. Иначе покупатель,
+    оплативший из аккаунта с одним адресом, но вписавший в Stripe другой,
+    получил бы доступ на второй аккаунт, а не на тот, в котором сидит.
+  */
+  let userId = session.metadata?.user_id ?? session.client_reference_id ?? null;
+
   if (!userId) {
-    console.error('[stripe] paid session carries no user id', session.id);
-    // 200 on purpose: retrying will not conjure a user id, and a retry loop
-    // would only bury the log line above. This needs a human, not a redelivery.
-    return NextResponse.json({ received: true });
+    const email = session.customer_details?.email ?? session.customer_email;
+    if (!email) {
+      console.error('[stripe] paid session carries neither user id nor email', session.id);
+      // 200 намеренно: повтор доставки адрес не создаст, а цикл повторов
+      // только закопает строку выше. Тут нужен человек, а не редоставка.
+      return NextResponse.json({ received: true });
+    }
+
+    const buyer = await findOrCreateBuyer(email);
+    if (!buyer) {
+      // 500 — чтобы Stripe повторил: платёж настоящий, и аккаунт под него
+      // обязан появиться. Здесь сбой почти наверняка временный.
+      return NextResponse.json({ error: 'buyer setup failed' }, { status: 500 });
+    }
+
+    userId = buyer.userId;
+    console.info('[stripe] buyer resolved', userId, buyer.created ? 'created' : 'existing');
   }
 
   const supabase = createSupabaseAdminClient();

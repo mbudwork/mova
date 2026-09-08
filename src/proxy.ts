@@ -13,7 +13,20 @@ import { createServerClient } from '@supabase/ssr';
  * database enforces RLS regardless. A proxy bypass alone must never leak data.
  */
 
-const PROTECTED_PREFIXES = ['/app', '/admin', '/onboarding', '/ru/checkout', '/uk/checkout', '/purchase'];
+/*
+  Чекаут сознательно НЕ защищён.
+
+  Раньше «Получить MOVA» вело на защищённый маршрут, аноним отскакивал на
+  вход, и до кассы человек проходил пять экранов. Теперь платить можно без
+  аккаунта: почту собирает сама страница Stripe, аккаунт создаёт вебхук
+  после оплаты.
+
+  /purchase/success тоже открыт — покупатель возвращается туда ещё
+  анонимным, и именно там происходит автоматический вход. Страницы, которым
+  нужен аккаунт, проверяют это сами (requireProfile), поэтому снятие
+  префикса ничего не открывает лишнего.
+*/
+const PROTECTED_PREFIXES = ['/app', '/admin', '/onboarding'];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

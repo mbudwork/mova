@@ -2236,6 +2236,7 @@ export type Database = {
       record_answer: { Args: { p_phrase_id: string; p_correct: boolean }; Returns: { state: 'new' | 'learning' | 'recognizing' | 'understood' | 'weak' | 'mastered' | null; next_review_at: string | null }[] };
       start_lesson: { Args: { p_lesson_id: string }; Returns: undefined };
       touch_updated_at: { Args: Record<string, never>; Returns: unknown };
+      user_id_by_email: { Args: { p_email: string }; Returns: string | null };
     };
     Enums: {
       app_role: 'user' | 'admin';

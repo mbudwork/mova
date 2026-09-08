@@ -1,25 +1,19 @@
 import { CheckoutScreen } from '@/components/landing/CheckoutScreen';
 import { Screen, ScreenHeader } from '@/components/ui/Screen';
 import { redirect } from 'next/navigation';
-import { hasFullAccess, requireUser } from '@/lib/auth/guards';
+import { hasFullAccess } from '@/lib/auth/guards';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Requires an account: a purchase is tied to the account the course will be
- * delivered to. An anonymous visitor lands here, is bounced to /register with
- * next=/uk/checkout by proxy.ts, and returns straight back after signing up.
+ * Оплата без аккаунта. Почту собирает страница Stripe, аккаунт создаёт
+ * вебхук после подтверждённого платежа.
  */
 export default async function CheckoutPageUk() {
-  await requireUser();
-
   /*
-    Уже купил — покупать нечего.
-
-    Раньше страница проверяла только наличие аккаунта, поэтому пользователь с
-    активным доступом, пришедший по ссылке на оформление (а именно туда его
-    возвращает proxy.ts через ?next= после входа), видел предложение купить то,
-    что у него уже есть. Для платящего это выглядит как потерянная оплата.
+    Аккаунт здесь не требуется: оплатить можно анонимно, аккаунт создаётся
+    вебхуком после оплаты. Проверка остаётся только для того, чтобы уже
+    купивший не увидел предложение купить ещё раз.
   */
   if (await hasFullAccess()) redirect('/app');
 
