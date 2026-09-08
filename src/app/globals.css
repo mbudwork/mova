@@ -823,6 +823,162 @@
     pointer-events: none;
   }
 
+  /* ------------------------------------------------------- device screen */
+  /*
+    Типографика и элементы управления внутри корпуса телефона. Экран шириной
+    296px — здесь свои размеры, иначе полноразмерные варианты ответа и
+    заголовки распирают макет, и стильная витрина превращается в тесную.
+  */
+  .d-eyebrow {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-mist);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .d-prompt {
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--color-cream);
+    margin-top: 6px;
+  }
+
+  .d-note {
+    font-size: 0.72rem;
+    text-align: center;
+    color: var(--color-mist-2);
+    margin-top: 12px;
+    padding: 0 6px;
+    line-height: 1.4;
+  }
+
+  .d-de {
+    font-size: 1.28rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--color-cream);
+    margin-top: 12px;
+    letter-spacing: -0.01em;
+  }
+
+  .d-status {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--color-mist);
+    margin-bottom: 18px;
+    padding: 0 2px;
+    font-weight: 600;
+  }
+
+  .d-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .d-dot {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .d-dot-on {
+    background: var(--color-gold);
+  }
+
+  /* Варианты ответа на экране телефона — компактнее общих. */
+  .on-device .answer-opt {
+    min-height: 46px;
+    border-radius: 13px;
+    font-size: 0.84rem;
+    padding: 0 14px;
+    box-shadow: none;
+  }
+
+  .on-device .answer-mark {
+    width: 14px;
+    font-size: 0.9rem;
+  }
+
+  .wave {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 20px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .wave i {
+    width: 3px;
+    height: 5px;
+    border-radius: 2px;
+    background: var(--color-gold);
+    opacity: 0.35;
+  }
+
+  /* Анимация только пока идёт звук — иначе движение отвлекает от чтения. */
+  .wave-on i {
+    opacity: 1;
+    animation: wv 1s ease-in-out infinite;
+  }
+
+  .wave-on i:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .wave-on i:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
+  .wave-on i:nth-child(4) {
+    animation-delay: 0.3s;
+  }
+
+  .wave-on i:nth-child(5) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes wv {
+    0%,
+    100% {
+      height: 5px;
+    }
+    50% {
+      height: 18px;
+    }
+  }
+
+  /* Плашки, вылетающие за корпус телефона. */
+  .chip {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 10px 16px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-cream);
+    box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.5);
+    z-index: 3;
+  }
+
+  .chip small {
+    display: block;
+    font-weight: 500;
+    color: var(--color-mist);
+    font-size: 0.68em;
+    margin-top: 1px;
+  }
+
   /* --------------------------------------------------------------- device */
   /*
     Корпус телефона в герое рисуется разметкой, а не картинкой: остаётся
@@ -844,7 +1000,10 @@
     position: relative;
     overflow: hidden;
     border-radius: 36px;
-    padding: 40px 18px 22px;
+    padding: 22px 18px 20px;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
     background: linear-gradient(175deg, #1a1c21, #0c0d10 75%);
     color: var(--color-cream);
   }
