@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/Button';
+import { PlayButton } from '@/components/PlayButton';
 import { computeExerciseState, shouldRevealGerman } from '@/lib/exercise';
 import { submitAnswer } from '@/lib/content/actions';
 import type { ExercisePhrase } from '@/lib/content/course';
@@ -84,22 +85,31 @@ export function ScoredExercise({ phrases, mode, onFinish }: Props) {
 
       <p className="mt-6 text-center text-lg font-bold">Что сказал прораб?</p>
 
+      {/*
+        With audio, this is a listening exercise and the German stays hidden
+        until the learner has answered — the same gate the marketing diagnostic
+        uses. Without audio it degrades honestly to reading: the sentence is
+        shown up front, under a visible notice, and never pretends to be sound.
+
+        The degraded branch is per phrase, not per lesson: one missing clip
+        must not turn the whole lesson into reading.
+      */}
       <div className="mt-6 flex justify-center">
-        {/* No audio exists yet (PHASE 5). Honest degraded mode: the German
-            text stands in for audio, revealed up front with a visible notice —
-            this is reading comprehension right now, not listening. It is
-            NOT hidden inside the normal reveal flow, and it never pretends
-            to be audio. */}
-        <div className="flex h-[104px] w-[104px] items-center justify-center rounded-full border-4 border-dashed border-cream-deep text-3xl text-slate">
-          ♪
-        </div>
+        <PlayButton src={phrase.audioUrl} />
       </div>
 
-      <div className="mt-4 rounded-[10px] bg-cream-deep/60 px-3 py-2 text-center text-xs text-slate">
-        Аудио ещё не записано — сейчас это упражнение на чтение, не на слух
-      </div>
-
-      <p className="de-phrase mt-6 text-center">{phrase.germanText}</p>
+      {phrase.audioUrl ? (
+        revealed ? (
+          <p className="de-phrase mt-6 text-center">{phrase.germanText}</p>
+        ) : null
+      ) : (
+        <>
+          <div className="mt-4 rounded-[10px] bg-cream-deep/60 px-3 py-2 text-center text-xs text-slate">
+            Аудио для этой фразы ещё не записано — сейчас это упражнение на чтение, не на слух
+          </div>
+          <p className="de-phrase mt-6 text-center">{phrase.germanText}</p>
+        </>
+      )}
 
       <div className="mt-8 space-y-2">
         {phrase.options.map((option) => {
