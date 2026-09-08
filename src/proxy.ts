@@ -7,6 +7,7 @@ import { createServerClient } from '@supabase/ssr';
  *  1. Refresh the Supabase session cookie so Server Components never see an
  *     expired token.
  *  2. Coarse route gating — bounce anonymous users out of /app and /admin.
+ *  3. Canonical host — увести с адресов вида <deploy>--<site>.netlify.app.
  *
  * This is a convenience layer, NOT the security boundary. Every protected page
  * and action re-checks with requireUser/requireAdmin/requireFullAccess, and the
@@ -28,7 +29,45 @@ import { createServerClient } from '@supabase/ssr';
 */
 const PROTECTED_PREFIXES = ['/app', '/admin', '/onboarding'];
 
+/**
+ * Уводит на канонический домен.
+ *
+ * У каждой сборки Netlify есть свой постоянный адрес
+ * <id-деплоя>--<проект>.netlify.app, и открыть приложение можно по нему.
+ * Контент тот же, но домен другой, а вместе с доменом другие и куки: вход на
+ * netlify.app не виден на mbud.de. Плюс Supabase принимает возврат только на
+ * mbud.de, а success_url из Stripe туда же и ведёт — то есть оплата на
+ * превью возвращает человека в другую сессию.
+ *
+ * Дешевле не разбираться с этим каждый раз, а просто не давать приложению
+ * жить на двух адресах. localhost не трогаем: на нём идёт разработка.
+ */
+function canonicalRedirect(request: NextRequest): NextResponse | null {
+  const canonical = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!canonical) return null;
+
+  let expected: URL;
+  try {
+    expected = new URL(canonical);
+  } catch {
+    return null;
+  }
+
+  const host = request.headers.get('host');
+  if (!host || host === expected.host) return null;
+  if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) return null;
+
+  const target = new URL(request.nextUrl.pathname + request.nextUrl.search, expected.origin);
+  // 307, а не 308: постоянный редирект браузер кэширует намертво, и если
+  // домен когда-нибудь сменится, старый адрес будет уводить не туда с машин,
+  // которые его запомнили.
+  return NextResponse.redirect(target, 307);
+}
+
 export async function proxy(request: NextRequest) {
+  const canonical = canonicalRedirect(request);
+  if (canonical) return canonical;
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
