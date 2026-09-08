@@ -11,6 +11,7 @@ import type { Locale } from '@/lib/locale';
  */
 export type LandingSections = {
   navCta: string;
+  navLogin: string;
 
   lossEyebrow: string;
   lossTitle: string;
@@ -69,6 +70,8 @@ export type LandingSections = {
 
   footerDisclaimer: string;
   footerTerms: string;
+  footerRefund: string;
+  footerCookies: string;
   footerPrivacy: string;
   footerContact: string;
   footerTest: string;
@@ -76,6 +79,7 @@ export type LandingSections = {
 
 const RU: LandingSections = {
   navCta: 'Тест бесплатно',
+  navLogin: 'Войти',
 
   lossEyebrow: 'Почему ты теряешь смысл',
   lossTitle: 'Знать слово мало — нужно поймать команду целиком.',
@@ -164,6 +168,8 @@ const RU: LandingSections = {
   footerDisclaimer:
     'MOVA — языковой тренажёр. Не заменяет профессиональную квалификацию, Sicherheitsunterweisung и официальный инструктаж по охране труда.',
   footerTerms: 'Условия',
+  footerRefund: 'Возврат',
+  footerCookies: 'Cookies',
   footerPrivacy: 'Конфиденциальность',
   footerContact: 'Контакты',
   footerTest: 'Пройти бесплатный тест',
@@ -172,6 +178,7 @@ const RU: LandingSections = {
 const UK: LandingSections = {
   ...RU,
   navCta: 'Тест безкоштовно',
+  navLogin: 'Увійти',
 
   lossEyebrow: 'Чому ти губиш зміст',
   lossTitle: 'Знати слово замало — треба впіймати команду цілком.',
@@ -243,6 +250,8 @@ const UK: LandingSections = {
   footerDisclaimer:
     'MOVA — мовний тренажер. Не замінює професійну кваліфікацію, Sicherheitsunterweisung та офіційний інструктаж з охорони праці.',
   footerTerms: 'Умови',
+  footerRefund: 'Повернення',
+  footerCookies: 'Cookies',
   footerPrivacy: 'Конфіденційність',
   footerContact: 'Контакти',
   footerTest: 'Пройти безкоштовний тест',

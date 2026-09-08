@@ -52,15 +52,22 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
 
       {/* -------------------------------------------------------- TOPBAR --- */}
       <nav className="topbar">
-        <div className="wrap flex items-center justify-between">
+        <div className="wrap flex items-center justify-between gap-3">
           <Brand />
-          <CtaLink
-            event="hero_test_click"
-            href={routes.test}
-            className="btn btn-gold nav-cta"
-          >
-            {t.navCta}
-          </CtaLink>
+          <div className="flex items-center gap-2">
+            {/*
+              Вход в шапке — не украшение. Купивший, у которого истекла кука
+              или который взял другой телефон, попадает на страницу продажи;
+              без этой ссылки войти в оплаченный курс ему неоткуда, и выглядит
+              это так, будто доступ пропал.
+            */}
+            <Link href="/login" className="btn btn-ghost nav-cta">
+              {t.navLogin}
+            </Link>
+            <CtaLink event="hero_test_click" href={routes.test} className="btn btn-gold nav-cta">
+              {t.navCta}
+            </CtaLink>
+          </div>
         </div>
       </nav>
 
@@ -377,13 +384,19 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
             {t.footerTerms}
           </Link>
           <Link href="/legal/refund" className="text-gold-deep underline">
-            Возврат
+            {t.footerRefund}
           </Link>
           <Link href="/legal/privacy" className="text-gold-deep underline">
             {t.footerPrivacy}
           </Link>
+          <Link href="/legal/cookies" className="text-gold-deep underline">
+            {t.footerCookies}
+          </Link>
           <Link href="/legal/contact" className="text-gold-deep underline">
             {t.footerContact}
+          </Link>
+          <Link href="/login" className="text-gold-deep underline">
+            {t.navLogin}
           </Link>
           <Link href={routes.test} className="text-gold-deep underline">
             {t.footerTest}
