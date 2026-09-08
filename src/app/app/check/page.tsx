@@ -1,31 +1,56 @@
+import { DiagnosticFlow } from '@/components/landing/DiagnosticFlow';
 import { ButtonLink } from '@/components/ui/Button';
 import { Screen, ScreenHeader } from '@/components/ui/Screen';
+import { EmptyState } from '@/components/ui/States';
+import { LANDING_COPY } from '@/lib/landing-copy';
 import { requireOnboarded } from '@/lib/auth/guards';
+import { getDiagnostic } from '@/lib/content/diagnostic';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Optional by design: nothing in the app requires this test, and skipping it
- * costs the user nothing. It exists for people who want to start further in.
+ * Level check, on the same seven recordings as the public test.
+ *
+ * It used to offer only a "Пропустить" button next to a description of a test
+ * that did not exist here — the questions were wired to the marketing funnel
+ * and never to the account. Same content, same component; the difference is
+ * that a logged-in learner finishes into the course rather than into checkout.
+ *
+ * Optional by design: nothing requires it, and skipping costs nothing. It is
+ * for people who want to start further in.
  */
 export default async function CheckPage() {
-  await requireOnboarded();
+  const profile = await requireOnboarded();
+  const locale = profile.uiLocale === 'uk' ? 'uk' : 'ru';
+  const questions = await getDiagnostic(locale);
+
+  if (questions.length === 0) {
+    return (
+      <Screen>
+        <ScreenHeader title="Проверить уровень" back="/app" />
+        <EmptyState
+          title="Проверка сейчас недоступна"
+          hint="Попробуй обновить страницу через минуту."
+          action={
+            <ButtonLink href="/app" variant="ghost">
+              Начать урок
+            </ButtonLink>
+          }
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
       <ScreenHeader title="Проверить уровень" back="/app" />
-      <p className="text-lg">
-        Десять коротких записей. Слушаешь и выбираешь, что от тебя хотят. Около двух минут.
+      <p className="-mt-2 mb-5 text-slate">
+        Слушаешь и выбираешь, что от тебя хотят. Около двух минут. Можно пропустить — курс
+        начнётся с самого начала.
       </p>
-      <p className="mt-4 text-slate">
-        Проверку можно пропустить — курс начнётся с самого начала.
-      </p>
-
-      <div className="mt-10 space-y-3">
-        <ButtonLink href="/app" size="lg" variant="ghost">
-          Пропустить и начать урок
-        </ButtonLink>
-      </div>
+      {/* checkoutHref → /app: this learner has already paid, so finishing the
+          check must lead into the course, never back to a purchase screen. */}
+      <DiagnosticFlow questions={questions} copy={LANDING_COPY[locale]} checkoutHref="/app" />
     </Screen>
   );
 }
