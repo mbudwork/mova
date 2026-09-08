@@ -496,6 +496,60 @@
     border-left-color: var(--color-gold);
   }
 
+  /* ---------------------------------------------------------- legal docs */
+  /*
+    Юридические тексты читают редко, но когда читают — читают внимательно и
+    обычно с телефона. Поэтому крупнее строка, заметнее заголовки и явные
+    отступы между пунктами: сплошная простыня мелким шрифтом здесь не просто
+    неудобна, она снижает доказательную ценность «пользователь был
+    проинформирован».
+  */
+  .legal-doc {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-ink);
+  }
+
+  .legal-doc h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+  }
+
+  .legal-doc h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 18px 0 6px;
+  }
+
+  .legal-doc p {
+    margin: 10px 0;
+    color: var(--color-slate);
+  }
+
+  .legal-doc ul {
+    margin: 10px 0;
+    padding-left: 20px;
+    list-style: disc;
+    color: var(--color-slate);
+  }
+
+  .legal-doc li {
+    margin: 6px 0;
+  }
+
+  .legal-doc a {
+    color: var(--color-gold-deep);
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  .legal-doc address {
+    color: var(--color-slate);
+    line-height: 1.7;
+  }
+
   /* ------------------------------------------------------------- sections */
   /*
     Блоки лендинга, перенесённые из макета один в один. Раньше в проекте были

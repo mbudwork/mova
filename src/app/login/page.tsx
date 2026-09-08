@@ -49,6 +49,12 @@ export default async function LoginPage({
         ) : null}
 
         <AuthForm mode="login" action={signIn} next={next} />
+
+        <p className="pt-6 text-center">
+          <Link href="/reset-password" className="font-bold text-gold-deep underline">
+            Забыл пароль
+          </Link>
+        </p>
       </Screen>
     </main>
   );

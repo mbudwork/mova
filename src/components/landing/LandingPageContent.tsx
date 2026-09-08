@@ -376,6 +376,9 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
           <Link href="/legal/terms" className="text-gold-deep underline">
             {t.footerTerms}
           </Link>
+          <Link href="/legal/refund" className="text-gold-deep underline">
+            Возврат
+          </Link>
           <Link href="/legal/privacy" className="text-gold-deep underline">
             {t.footerPrivacy}
           </Link>

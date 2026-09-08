@@ -125,6 +125,34 @@ export async function resendConfirmation(
   redirect('/register/check-email?resent=1');
 }
 
+/**
+ * Письмо со ссылкой на смену пароля.
+ *
+ * До сих пор восстановления не существовало вовсе: ни этого действия, ни
+ * ссылки на входе. Человек, забывший пароль, попасть в оплаченный курс не мог
+ * никак — только через ручную правку в базе. Для покупателя, у которого
+ * аккаунт создан оплатой, это единственный запасной вход.
+ *
+ * Ответ всегда одинаковый, независимо от того, есть такой адрес или нет:
+ * иначе форма превращается в способ проверять чужие адреса на регистрацию.
+ */
+export async function requestPasswordReset(
+  _prev: AuthResult,
+  formData: FormData,
+): Promise<AuthResult> {
+  const email = String(formData.get('email') ?? '').trim();
+  if (!email) return { error: 'Введи почту, на которую оформлял доступ.' };
+
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.resetPasswordForEmail(email, {
+    // Ссылка ведёт в тот же обработчик, что и подтверждение почты: он меняет
+    // одноразовый код на сессию, и уже в ней человек задаёт новый пароль.
+    redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent('/account/password')}`,
+  });
+
+  redirect('/reset-password?sent=1');
+}
+
 export async function signOut() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
