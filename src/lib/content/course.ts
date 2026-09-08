@@ -193,3 +193,65 @@ export async function getReviewSession(locale: string, limit = 8): Promise<Exerc
   const withAudio = await attachAudio(source);
   return withAudio.map((p) => ({ ...p, options: buildOptions(p, source) }));
 }
+
+/**
+ * "Что говорит прораб?" — a listening drill over whatever the learner already
+ * has access to, independent of lesson order and of the review schedule.
+ *
+ * Different from getReviewSession on purpose: review is driven by
+ * `due_review_phrases` and is empty for a learner with no history, which is
+ * why this mode cannot be built on it. Here we take primary phrases from the
+ * published lessons RLS already lets this user read, shuffle, and cut a small
+ * batch — so the mode works from the very first session.
+ *
+ * Phrases without an approved clip are filtered out. This mode is listening
+ * and nothing else: a silent card here would be the reading fallback wearing
+ * the wrong label.
+ */
+export async function getListeningSession(locale: string, limit = 8): Promise<ExercisePhrase[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('lesson_phrases')
+    .select(
+      `role,
+       lessons!inner(is_published),
+       phrases!inner(id, german_text,
+         phrase_translations(text, pronunciation, language_code))`,
+    )
+    .eq('role', 'primary')
+    .eq('lessons.is_published', true)
+    .limit(300);
+
+  if (error || !data) return [];
+
+  const seen = new Set<string>();
+  const pool = data.flatMap((link) => {
+    const phrase = link.phrases;
+    if (!phrase || seen.has(phrase.id)) return [];
+    seen.add(phrase.id);
+    const translation = pickByLocale(phrase.phrase_translations, locale);
+    return [
+      {
+        id: phrase.id,
+        germanText: phrase.german_text,
+        translation: translation?.text ?? '',
+        pronunciation: translation?.pronunciation ?? null,
+      },
+    ];
+  });
+
+  // Fisher-Yates over the whole pool, then cut. Shuffling before the audio
+  // lookup would be cheaper, but a batch drawn from the same corner of the
+  // course every time is not a drill.
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+  }
+
+  const batch = pool.slice(0, limit * 2);
+  const withAudio = await attachAudio(batch);
+  const audible = withAudio.filter((p) => p.audioUrl !== null).slice(0, limit);
+
+  return audible.map((p) => ({ ...p, options: buildOptions(p, audible) }));
+}
