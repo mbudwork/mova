@@ -300,7 +300,13 @@
     border-color: var(--line);
   }
 
+  /*
+    display: flex, а не унаследованный от .btn inline-flex. У строчного
+    элемента margin: auto по горизонтали не действует, поэтому кнопка с
+    max-width прижималась к левому краю вместо центра.
+  */
   .btn-block {
+    display: flex;
     width: 100%;
   }
 

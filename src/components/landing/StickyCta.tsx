@@ -61,13 +61,22 @@ export function StickyCta({
       className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--line)] bg-[rgba(10,11,13,.85)] p-3.5 backdrop-blur-xl"
       style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
     >
-      <Link
-        href={href}
-        onClick={() => track('sticky_cta_click', { state: testCompleted ? 'offer' : 'test' })}
-        className="btn btn-gold btn-block mx-auto max-w-[480px]"
-      >
-        {label}
-      </Link>
+      {/*
+        Обёртка с той же шириной, что и колонка лендинга (max-w-[560px] + px-5),
+        а не mx-auto на самой кнопке. .btn — это inline-flex, а горизонтальные
+        авто-отступы на строчных элементах не работают: кнопка с max-width
+        прижималась к левому краю. На телефоне это было незаметно, потому что
+        экран уже её предела, а на десктопе она уезжала в угол.
+      */}
+      <div className="mx-auto w-full max-w-[560px] px-5">
+        <Link
+          href={href}
+          onClick={() => track('sticky_cta_click', { state: testCompleted ? 'offer' : 'test' })}
+          className="btn btn-gold btn-block"
+        >
+          {label}
+        </Link>
+      </div>
     </div>
   );
 }
