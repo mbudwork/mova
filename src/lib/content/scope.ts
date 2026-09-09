@@ -7,6 +7,10 @@ export type CourseScope = {
   phrases: number;
   vocabulary: number;
   trades: string[];
+  /** Одобренные фразы общего модуля — «язык стройки», который учат все. */
+  corePhrases: number;
+  /** Одобренные фразы профессиональных модулей, суммарно по всем шести. */
+  professionPhrases: number;
 };
 
 /**
@@ -23,7 +27,13 @@ export async function getCourseScope(): Promise<CourseScope> {
   const admin = createSupabaseAdminClient();
 
   try {
-    const [lessons, phrases, vocabulary, trades] = await Promise.all([
+    /*
+      CORE и профессиональные фразы считаются отдельно: лендинг обещает
+      «столько-то общих плюс модуль профессии», и это обещание должно
+      считаться из базы. В макете стояло 232 CORE — число, которого в курсе
+      никогда не было, и повторять его на живом сайте значит завышать объём.
+    */
+    const [lessons, phrases, vocabulary, trades, core, prof] = await Promise.all([
       admin.from('lessons').select('*', { count: 'exact', head: true }).eq('is_published', true),
       admin.from('phrases').select('*', { count: 'exact', head: true }).eq('verification_status', 'approved'),
       admin
@@ -35,6 +45,8 @@ export async function getCourseScope(): Promise<CourseScope> {
         .select('scope, is_published, professions(profession_translations(name, language_code))')
         .eq('scope', 'profession')
         .eq('is_published', true),
+      admin.rpc('count_scope_phrases', { p_scope: 'core' }),
+      admin.rpc('count_scope_phrases', { p_scope: 'profession' }),
     ]);
 
     const tradeNames: string[] = [];
@@ -49,9 +61,18 @@ export async function getCourseScope(): Promise<CourseScope> {
       phrases: phrases.count ?? 0,
       vocabulary: vocabulary.count ?? 0,
       trades: tradeNames.sort(),
+      corePhrases: core.data ?? 0,
+      professionPhrases: prof.data ?? 0,
     };
   } catch {
-    return { lessons: 0, phrases: 0, vocabulary: 0, trades: [] };
+    return {
+      lessons: 0,
+      phrases: 0,
+      vocabulary: 0,
+      trades: [],
+      corePhrases: 0,
+      professionPhrases: 0,
+    };
   }
 }
 
