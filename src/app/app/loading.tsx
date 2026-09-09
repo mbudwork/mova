@@ -5,7 +5,7 @@ export default function Loading() {
   return (
     <Screen>
       <div className="space-y-5 pt-10">
-        <div className="h-8 w-40 animate-pulse rounded bg-cream-deep" />
+        <div className="h-8 w-40 animate-pulse rounded bg-ink-3" />
         <Skeleton lines={4} />
       </div>
     </Screen>

@@ -1,19 +1,11 @@
-import { Screen, ScreenHeader } from '@/components/ui/Screen';
-import { EmptyState } from '@/components/ui/States';
-import { requireOnboarded } from '@/lib/auth/guards';
+import { redirect } from 'next/navigation';
 
-export const dynamic = 'force-dynamic';
-
-export default async function ProfessionPage() {
-  await requireOnboarded();
-
-  return (
-    <Screen>
-      <ScreenHeader title="Моя профессия" back="/app" />
-      <EmptyState
-        title="Сначала общая часть"
-        hint="Слова и команды твоей специальности открываются после основного курса."
-      />
-    </Screen>
-  );
+/**
+ * Экран был заглушкой: всегда показывал «Сначала общая часть» и никогда
+ * ничего другого. Уроки профессии теперь отдельной группой в /app/lessons —
+ * там они видны рядом с общей частью, а не в тупике за отдельной плиткой.
+ * Страница оставлена редиректом: по адресу могли остаться закладки.
+ */
+export default function ProfessionPage() {
+  redirect('/app/lessons');
 }

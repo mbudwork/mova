@@ -22,10 +22,18 @@
   --color-ink-3: #1f2228;
   --color-ink-4: #2a2d34;
 
-  /* --- бумага ------------------------------------------------------------ */
+  /* --- поверхности -------------------------------------------------------
+     Интерфейс тёмный целиком. Прежде светлые токены сохранили имена, но
+     получили тёмные значения: так весь код, размеченный под старую палитру,
+     перекрашивается разом и не остаётся светлых заплаток.
+
+     Исключение — --color-cream: он читается как ТЕКСТ на тёмном (text-cream),
+     поэтому остаётся светлым. Места, где он был фоном, переведены на ink-3.
+     Оговорка, которую стоит помнить: тёмная тема хуже читается на прямом
+     солнце, а телефон на объекте смотрят именно там. */
   --color-cream: #f7f3ec;
-  --color-cream-deep: #ece4d4;
-  --color-paper: #ffffff;
+  --color-cream-deep: #23262c;
+  --color-paper: #15171b;
 
   /* --- золото ------------------------------------------------------------ */
   --color-gold: #f0b429;
@@ -34,8 +42,10 @@
 
   /* --- текст второго плана ----------------------------------------------- */
   --color-mist: #9a9ea6;
-  --color-mist-2: #6e727a;
-  --color-slate: #6b6f76;
+  --color-mist-2: #7e828a;
+  /* Вторичный текст. На тёмном прежний #6b6f76 сливался с фоном — это те
+     самые 54 места с text-slate по всему приложению. */
+  --color-slate: #a2a6ae;
 
   /* --- статусы ----------------------------------------------------------- */
   --color-good: #3ea16b;
@@ -46,8 +56,8 @@
     продолжают работать и выглядят по-новому, а не ломаются на несуществующем
     классе. Новый код их не использует.
   */
-  --color-concrete: #f7f3ec;
-  --color-concrete-deep: #ece4d4;
+  --color-concrete: #15171b;
+  --color-concrete-deep: #23262c;
   --color-signal: #f0b429;
   --color-signal-deep: #b9860e;
   --color-blau: #b9860e;
@@ -74,7 +84,7 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   html {
@@ -82,8 +92,8 @@
   }
 
   body {
-    background: var(--color-cream);
-    color: var(--color-ink);
+    background: var(--color-ink);
+    color: var(--color-cream);
     font-family: var(--font-sans);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -94,13 +104,10 @@
     Фокус — графит по золоту и золото по графиту. Золотое кольцо на золотой
     кнопке невидимо, поэтому цвет обводки зависит от поверхности.
   */
+  /* Обводка фокуса золотом: графит по графиту был бы невидим. */
   :focus-visible {
-    outline: 3px solid var(--color-ink);
+    outline: 3px solid var(--color-gold);
     outline-offset: 2px;
-  }
-
-  .surface-dark :focus-visible {
-    outline-color: var(--color-gold);
   }
 
   button,
@@ -124,7 +131,8 @@
   */
   .card {
     background: var(--color-paper);
-    color: var(--color-ink);
+    color: var(--color-cream);
+    border: 1px solid var(--line);
     border-radius: 26px;
     /*
       Двойная тень вместо одной: узкая контактная у самой карточки и широкая
@@ -132,9 +140,7 @@
       фона», две дают ощущение веса — то, чем дорогой интерфейс отличается от
       шаблонного.
     */
-    box-shadow:
-      0 1px 2px rgba(10, 11, 13, 0.04),
-      0 24px 60px -32px rgba(10, 11, 13, 0.28);
+    box-shadow: 0 26px 60px -34px rgba(0, 0, 0, 0.75);
   }
 
   .card-dark {
@@ -192,7 +198,7 @@
   .h-sub {
     font-size: clamp(1.1rem, 3vw, 1.4rem);
     line-height: 1.4;
-    color: var(--color-mist-2);
+    color: var(--color-mist);
     font-weight: 450;
   }
 
@@ -222,7 +228,7 @@
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-mist-2);
+    color: var(--color-mist);
   }
 
   .eyebrow::before {
@@ -320,14 +326,15 @@
   }
 
   .btn-ink {
-    background: var(--color-ink);
+    background: var(--color-ink-3);
     color: var(--color-cream);
+    border: 1px solid var(--line);
   }
 
   .btn-ghost {
     background: transparent;
     color: inherit;
-    border: 1.5px solid var(--line-light);
+    border: 1.5px solid var(--line);
   }
 
   .surface-dark .btn-ghost {
@@ -366,11 +373,11 @@
     min-height: 60px;
     width: 100%;
     border-radius: 16px;
-    border: 1.5px solid var(--line-light);
-    background: var(--color-paper);
+    border: 1.5px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
     padding: 0 18px;
     font-size: 1.05rem;
-    color: var(--color-ink);
+    color: var(--color-cream);
   }
 
   .field::placeholder {
@@ -389,9 +396,9 @@
     min-height: 52px;
     padding: 0 22px;
     border-radius: 100px;
-    border: 1.5px solid var(--line-light);
-    background: var(--color-paper);
-    color: var(--color-slate);
+    border: 1.5px solid var(--line);
+    background: var(--color-ink-2);
+    color: var(--color-mist);
     font-weight: 700;
     font-size: 0.92rem;
     display: inline-flex;
@@ -423,8 +430,6 @@
     переключается сам, поэтому вызывающему коду не нужно знать, где он лежит.
   */
   .answer-opt {
-    /* Тень-подложка: варианты перестают выглядеть строками таблицы. */
-    box-shadow: 0 1px 2px rgba(10, 11, 13, 0.04);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -432,9 +437,9 @@
     min-height: 62px;
     padding: 12px 16px;
     border-radius: 16px;
-    border: 1.5px solid var(--line-light);
-    background: var(--color-paper);
-    color: var(--color-ink);
+    border: 1.5px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-cream);
     font-size: 1.05rem;
     font-weight: 600;
     line-height: 1.35;
@@ -462,6 +467,14 @@
     font-weight: 700;
   }
 
+  /* Выбор в онбординге: золото + тёмный текст, единственная читаемая пара. */
+  .answer-opt-selected {
+    border-color: var(--color-gold);
+    background: linear-gradient(180deg, #ffd873, var(--color-gold) 60%);
+    color: #241a02;
+    font-weight: 700;
+  }
+
   .answer-opt-wrong {
     border-color: var(--color-bad);
     background: rgba(224, 103, 63, 0.14);
@@ -476,10 +489,10 @@
 
   /* --------------------------------------------------------------- notices */
   .notice {
-    color: var(--color-ink);
+    color: var(--color-cream);
     border-radius: 18px;
-    border-left: 8px solid var(--color-cream-deep);
-    background: var(--color-paper);
+    border-left: 8px solid var(--color-ink-4);
+    background: var(--color-ink-2);
     padding: 16px 18px;
     font-weight: 700;
   }
@@ -507,7 +520,7 @@
   .legal-doc {
     font-size: 1rem;
     line-height: 1.6;
-    color: var(--color-ink);
+    color: var(--color-cream);
   }
 
   .legal-doc h2 {
@@ -605,8 +618,9 @@
 
   /* Реплика прораба, услышанная наполовину. */
   .bubble {
-    background: var(--color-paper);
-    color: var(--color-ink);
+    background: var(--color-ink-2);
+    border: 1px solid var(--line);
+    color: var(--color-cream);
     border-radius: 26px;
     padding: 26px 28px;
     box-shadow: 0 20px 50px -30px rgba(10, 11, 13, 0.25);
@@ -616,7 +630,7 @@
   }
 
   .bubble .fade {
-    color: #c7c2b6;
+    color: #4b4f57;
   }
 
   .decomp {
@@ -626,7 +640,8 @@
   }
 
   .decomp .cell {
-    background: var(--color-ink);
+    background: var(--color-ink-2);
+    border: 1px solid var(--line);
     color: var(--color-cream);
     border-radius: 18px;
     padding: 18px 14px;
@@ -698,7 +713,7 @@
     height: 16px;
     border-radius: 50%;
     background: var(--color-ink-4);
-    border: 2px solid var(--line-light);
+    border: 2px solid var(--line);
   }
 
   .mem-dot-on {
@@ -710,7 +725,7 @@
   .mem-connector {
     width: 44px;
     height: 2px;
-    background: var(--line-light);
+    background: var(--line);
   }
 
   .split-panel {
@@ -1021,7 +1036,7 @@
 
   /* ------------------------------------------------------------------ faq */
   .faq-item {
-    border-bottom: 1px solid var(--line-light);
+    border-bottom: 1px solid var(--line);
     padding: 22px 0;
   }
 

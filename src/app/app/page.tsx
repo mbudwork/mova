@@ -88,9 +88,8 @@ export default async function HomePage() {
           href="/app/lessons"
           glyph="📚"
           title="Все уроки"
-          hint="Открыть любой заново — прогресс не сбросится"
+          hint="Общая часть и твоя профессия"
         />
-        <Tile href="/app/profession" glyph="🛠" title="Моя профессия" hint="Слова и фразы твоей специальности" />
         <Tile
           href="/app/review"
           glyph="🔁"

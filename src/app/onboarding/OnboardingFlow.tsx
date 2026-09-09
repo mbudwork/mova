@@ -27,16 +27,21 @@ function Choice({
   return (
     <label
       className={[
-        'flex min-h-[68px] cursor-pointer items-center gap-4 rounded-[18px] border-2 px-4 py-3 text-lg',
-        checked ? 'border-ink bg-gold font-bold' : 'border-cream-deep bg-paper',
+        /*
+          Выбранный вариант — золотой фон и ТЁМНЫЙ текст. Раньше текст
+          наследовал кремовый от тёмной темы: светлое по золотому не читается
+          вовсе, и человек не видел, что именно выбрал.
+        */
+        'answer-opt min-h-[68px] cursor-pointer text-lg',
+        checked ? 'answer-opt-selected' : '',
       ].join(' ')}
     >
       <input {...input} checked={checked} className="sr-only" />
       <span
         aria-hidden
         className={[
-          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2',
-          checked ? 'border-ink bg-ink text-gold-deep' : 'border-cream-deep',
+          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-sm',
+          checked ? 'border-ink bg-ink text-gold-2' : 'border-[var(--line)]',
         ].join(' ')}
       >
         {checked ? '✓' : ''}

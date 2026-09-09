@@ -42,7 +42,7 @@ export default async function FunnelPage({
               'rounded-full border-2 px-4 py-2 text-sm font-bold',
               (locale ?? 'all') === option.value
                 ? 'border-ink bg-ink text-cream'
-                : 'border-cream-deep bg-paper',
+                : 'border-[var(--line)] bg-ink-2',
             ].join(' ')}
           >
             {option.label}
