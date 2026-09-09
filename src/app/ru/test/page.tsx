@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { DiagnosticFlow } from '@/components/landing/DiagnosticFlow';
 import { EmptyState } from '@/components/ui/States';
 import { Screen } from '@/components/ui/Screen';
-import { LANDING_COPY } from '@/lib/landing-copy';
 import { landingRoutes } from '@/lib/landing-routes';
 import { getDiagnostic } from '@/lib/content/diagnostic';
 
@@ -22,7 +21,6 @@ export const dynamic = 'force-dynamic';
 export default async function DiagnosticPage() {
   const locale = 'ru' as const;
   const questions = await getDiagnostic(locale);
-  const copy = LANDING_COPY[locale];
   const routes = landingRoutes(locale);
 
   if (questions.length === 0) {
@@ -40,7 +38,11 @@ export default async function DiagnosticPage() {
   return (
     <main>
       <Screen>
-        <DiagnosticFlow questions={questions} copy={copy} checkoutHref={routes.checkout} />
+        <DiagnosticFlow
+          questions={questions}
+          checkoutHref={routes.checkout}
+          learnMoreHref="/ru#price"
+        />
       </Screen>
     </main>
   );

@@ -7,32 +7,60 @@ import { getReviewSession } from '@/lib/content/course';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Real, no longer a stub: pulls this user's actual due/weak phrases from
- * phrase_progress via due_review_phrases() and runs the same scored
- * exercise the lesson uses. An empty result now means "nothing is due",
- * which is a genuine state, not a hardcoded message.
- */
+/** Через сколько часов подойдёт ближайшая фраза. Округляем вверх: «через 0
+ *  часов» звучит как ошибка, а «меньше часа» — как ответ. */
+function untilLabel(iso: string | null): string {
+  if (!iso) return '';
+  const diffMs = new Date(iso).getTime() - Date.now();
+  if (diffMs <= 0) return '';
+  const hours = Math.ceil(diffMs / 3_600_000);
+  if (hours <= 1) return 'меньше чем через час';
+  if (hours < 24) return `примерно через ${hours} ч`;
+  return `завтра`;
+}
+
 export default async function ReviewPage() {
   const profile = await requireOnboarded();
-  const phrases = await getReviewSession(profile.uiLocale);
+  const session = await getReviewSession(profile.uiLocale);
 
-  return (
-    <Screen>
-      <ScreenHeader title="Повторение" back="/app" />
-      {phrases.length === 0 ? (
+  if (session.phrases.length === 0) {
+    return (
+      <Screen>
+        <ScreenHeader title="Повторение" back="/app" />
         <EmptyState
           title="Пока нечего повторять"
-          hint="Фразы, которые пора повторить, появятся здесь сами — по расписанию или если ты в них ошибся."
+          hint="Фразы появятся здесь сами: по расписанию или после ошибки в уроке."
           action={
-            <ButtonLink href="/app" variant="ghost">
+            <ButtonLink href="/app/lessons" variant="ghost">
               К урокам
             </ButtonLink>
           }
         />
-      ) : (
-        <ReviewSessionClient phrases={phrases} />
-      )}
+      </Screen>
+    );
+  }
+
+  return (
+    <Screen>
+      <ScreenHeader title="Повторение" back="/app" />
+
+      {/*
+        Раньше при пустой очереди экран говорил «пока нечего повторять» даже
+        человеку, который только что ошибся девять раз: ошибка ставит показ
+        через четыре часа. Формально верно, по ощущению — сломано, причём в
+        момент, когда желание разобраться выше всего. Теперь такие фразы
+        доступны сразу, но честно помечены как тренировка вне расписания:
+        расписание от неё не сдвигается.
+      */}
+      {session.aheadOfSchedule ? (
+        <p className="-mt-2 mb-4 text-slate">
+          По расписанию пока ничего нет — ближайшая {untilLabel(session.nextDueAt)}. Но у тебя{' '}
+          <b className="text-cream">{session.weakTotal}</b> слабых фраз, и их можно прогнать прямо
+          сейчас. На расписание это не повлияет.
+        </p>
+      ) : null}
+
+      <ReviewSessionClient phrases={session.phrases} />
     </Screen>
   );
 }

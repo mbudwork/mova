@@ -2,7 +2,6 @@ import { DiagnosticFlow } from '@/components/landing/DiagnosticFlow';
 import { ButtonLink } from '@/components/ui/Button';
 import { Screen, ScreenHeader } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/States';
-import { LANDING_COPY } from '@/lib/landing-copy';
 import { requireOnboarded } from '@/lib/auth/guards';
 import { getDiagnostic } from '@/lib/content/diagnostic';
 
@@ -50,7 +49,12 @@ export default async function CheckPage() {
       </p>
       {/* checkoutHref → /app: this learner has already paid, so finishing the
           check must lead into the course, never back to a purchase screen. */}
-      <DiagnosticFlow questions={questions} copy={LANDING_COPY[locale]} checkoutHref="/app" />
+      <DiagnosticFlow
+        questions={questions}
+        checkoutHref="/app"
+        ctaLabel="Продолжить курс"
+        learnMoreHref={null}
+      />
     </Screen>
   );
 }
