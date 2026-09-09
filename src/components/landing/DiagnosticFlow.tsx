@@ -11,7 +11,6 @@ import {
   type QuestionResult,
 } from '@/lib/diagnostic-flow';
 import type { DiagnosticQuestion } from '@/lib/content/diagnostic';
-import type { LandingCopy } from '@/lib/landing-copy';
 import { markTestCompleted } from '@/components/landing/StickyCta';
 
 /**
@@ -20,12 +19,16 @@ import { markTestCompleted } from '@/components/landing/StickyCta';
  */
 export function DiagnosticFlow({
   questions,
-  copy,
   checkoutHref,
+  learnMoreHref,
+  ctaLabel = 'Получить полный доступ',
 }: {
   questions: DiagnosticQuestion[];
-  copy: LandingCopy;
   checkoutHref: string;
+  /** Куда ведёт вторая кнопка на экране результата. null — кнопки нет. */
+  learnMoreHref?: string | null;
+  /** Подпись основной кнопки. По умолчанию — про покупку. */
+  ctaLabel?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [chosen, setChosen] = useState<string | null>(null);
@@ -79,7 +82,14 @@ export function DiagnosticFlow({
   }
 
   if (finished) {
-    return <DiagnosticResult results={results} copy={copy} checkoutHref={checkoutHref} />;
+    return (
+      <DiagnosticResult
+        results={results}
+        checkoutHref={checkoutHref}
+        learnMoreHref={learnMoreHref}
+        ctaLabel={ctaLabel}
+      />
+    );
   }
 
   return (
@@ -223,12 +233,14 @@ function AudioQuestion({ src, onPlay }: { src: string; onPlay: () => void }) {
 /** Mirror, not verdict. No invented "AI analysis" — pure counting from diagnostic-flow.ts. */
 function DiagnosticResult({
   results,
-  copy,
   checkoutHref,
+  learnMoreHref,
+  ctaLabel = 'Получить полный доступ',
 }: {
   results: QuestionResult[];
-  copy: LandingCopy;
   checkoutHref: string;
+  learnMoreHref?: string | null;
+  ctaLabel?: string;
 }) {
   const summary = summarizeDiagnostic(results);
   const tier = resultTier(summary.share);
@@ -294,14 +306,21 @@ function DiagnosticResult({
           }
           className="btn btn-gold btn-lg btn-block"
         >
-          {copy.offerCta === copy.offerCta ? 'Получить полный доступ' : copy.offerCta}
+          {ctaLabel}
         </Link>
-        <Link
-          href="#dostup"
-          className="btn btn-ghost btn-block"
-        >
-          Посмотреть, что внутри
-        </Link>
+
+        {/*
+          Вела на якорь #dostup, которого нет ни на одной странице, — да и тест
+          открывается отдельным маршрутом, так что хеш всё равно никуда бы не
+          привёл. Теперь ведёт на блок с ценой и составом курса, а у того, кто
+          уже купил, второй кнопки просто нет: показывать «что внутри»
+          человеку, который внутри, незачем.
+        */}
+        {learnMoreHref ? (
+          <Link href={learnMoreHref} className="btn btn-ghost btn-block">
+            Что входит в курс
+          </Link>
+        ) : null}
       </div>
     </div>
   );
