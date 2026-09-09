@@ -2237,6 +2237,7 @@ export type Database = {
       start_lesson: { Args: { p_lesson_id: string }; Returns: undefined };
       touch_updated_at: { Args: Record<string, never>; Returns: unknown };
       user_id_by_email: { Args: { p_email: string }; Returns: string | null };
+      count_scope_phrases: { Args: { p_scope: string }; Returns: number };
     };
     Enums: {
       app_role: 'user' | 'admin';
