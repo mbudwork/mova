@@ -6,10 +6,25 @@ export const metadata: Metadata = {
   description:
     'Понимай немецкого прораба на стройке. Тренажёр команд, инструментов и размеров для строителей.',
   applicationName: 'MOVA',
-  appleWebApp: { capable: true, title: 'MOVA', statusBarStyle: 'default' },
+  /*
+    statusBarStyle: black-translucent — интерфейс тёмный, и светлая системная
+    полоса поверх графита выглядела бы чужой заплаткой при запуске с ярлыка.
+  */
+  appleWebApp: { capable: true, title: 'MOVA', statusBarStyle: 'black-translucent' },
   icons: {
-    icon: '/icons/icon-192.png',
-    apple: '/icons/apple-touch-icon.png',
+    /*
+      Порядок важен: браузер берёт первую подходящую по размеру. .ico идёт
+      первым как универсальный запасной вариант для старых движков и для
+      вкладок, PNG — для всего остального.
+    */
+    icon: [
+      { url: '/icons/favicon.ico', sizes: 'any' },
+      { url: '/icons/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/favicon-64.png', sizes: '64x64', type: 'image/png' },
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    // iOS берёт именно этот файл при добавлении на домашний экран.
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
 };
 
