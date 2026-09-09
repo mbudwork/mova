@@ -16,6 +16,28 @@ export type DiagnosticQuestion = {
 };
 
 /**
+ * Перемешивает варианты ответа для одного вопроса.
+ *
+ * Порядок вариантов лежит в базе жёстко, и правильные ответы там выстроены по
+ * кругу: 1, 2, 3, 4, 1, 2, 3. Семь вопросов, и уже к третьему человек видит
+ * закономерность — дальше тест проходится по счёту, без единого прослушанного
+ * слова. Для бесплатного теста, который должен показать реальный уровень и
+ * продать курс, это хуже, чем бесполезно: он показывает выдуманный результат.
+ *
+ * Перемешивание — на сервере, при каждой загрузке. Страница помечена
+ * force-dynamic, разметка отдаётся уже перемешанной, и клиент получает ровно
+ * тот же порядок — расхождения при гидратации не возникает.
+ */
+function shuffle<T>(items: T[]): T[] {
+  const arr = items.slice();
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j]!, arr[i]!];
+  }
+  return arr;
+}
+
+/**
  * Reads the public diagnostic snapshot, localized. Still never touches
  * `phrases` — anonymous visitors reach only this snapshot, exactly as in the
  * funnel phase before this one.
@@ -47,14 +69,13 @@ export async function getDiagnostic(locale: Locale): Promise<DiagnosticQuestion[
       skillLabel,
       audioUrl: row.audio_status === 'ready' ? row.audio_path : null,
       translationReviewed: locale === 'ru' ? true : row.is_uk_reviewed,
-      options: row.diagnostic_options
-        .slice()
-        .sort((a, b) => a.position - b.position)
-        .map((option) => ({
+      options: shuffle(
+        row.diagnostic_options.map((option) => ({
           id: option.id,
           text: locale === 'uk' ? (option.text_uk ?? option.text_ru) : option.text_ru,
           isCorrect: option.is_correct,
         })),
+      ),
     };
   });
 }
