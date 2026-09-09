@@ -97,7 +97,7 @@ export function DiagnosticFlow({
         {questions.map((item, i) => (
           <span
             key={item.id}
-            className={['h-1.5 flex-1 rounded-full', i <= index ? 'bg-gold' : 'bg-cream-deep'].join(
+            className={['h-1.5 flex-1 rounded-full', i <= index ? 'bg-gold' : 'bg-ink-3'].join(
               ' ',
             )}
           />
@@ -298,7 +298,7 @@ function DiagnosticResult({
         </Link>
         <Link
           href="#dostup"
-          className="flex min-h-[60px] w-full items-center justify-center rounded-[18px] border border-[var(--line-light)] bg-paper px-5 text-lg font-bold"
+          className="btn btn-ghost btn-block"
         >
           Посмотреть, что внутри
         </Link>

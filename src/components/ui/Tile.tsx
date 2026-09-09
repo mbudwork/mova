@@ -18,7 +18,7 @@ export function Tile({
     >
       <span
         aria-hidden
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cream text-xl"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink-3 text-xl"
       >
         {glyph}
       </span>

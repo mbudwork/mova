@@ -58,7 +58,7 @@ export function PlayButton({ src, label = 'Слушать' }: Props) {
   if (!src) {
     return (
       <div className="flex flex-col items-center gap-3">
-        <div className="flex h-[132px] w-[132px] items-center justify-center rounded-full border-4 border-dashed border-cream-deep text-4xl text-slate">
+        <div className="flex h-[132px] w-[132px] items-center justify-center rounded-full border-4 border-dashed border-[var(--line)] text-4xl text-slate">
           ♪
         </div>
         <p className="text-center text-slate">Аудио для этой фразы ещё не записано</p>

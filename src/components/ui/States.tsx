@@ -14,7 +14,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-[26px] border-2 border-dashed border-cream-deep bg-paper/60 p-7 text-center">
+    <div className="rounded-[26px] border-2 border-dashed border-[var(--line)] bg-ink-2/60 p-7 text-center">
       <p className="text-lg font-bold tracking-tight">{title}</p>
       <p className="mt-2 text-slate">{hint}</p>
       {action ? <div className="mt-6">{action}</div> : null}
@@ -44,7 +44,7 @@ export function Skeleton({ lines = 3 }: { lines?: number }) {
   return (
     <div aria-hidden className="space-y-3">
       {Array.from({ length: lines }).map((_, i) => (
-        <div key={i} className="h-14 animate-pulse rounded-[18px] bg-cream-deep" />
+        <div key={i} className="h-14 animate-pulse rounded-[18px] bg-ink-3" />
       ))}
     </div>
   );

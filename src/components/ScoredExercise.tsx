@@ -76,7 +76,7 @@ export function ScoredExercise({ phrases, mode, onFinish }: Props) {
         {phrases.map((p, i) => (
           <span
             key={p.id}
-            className={['h-1.5 flex-1 rounded-full', i <= index ? 'bg-gold' : 'bg-cream-deep'].join(
+            className={['h-1.5 flex-1 rounded-full', i <= index ? 'bg-gold' : 'bg-ink-3'].join(
               ' ',
             )}
           />
@@ -104,7 +104,7 @@ export function ScoredExercise({ phrases, mode, onFinish }: Props) {
         ) : null
       ) : (
         <>
-          <div className="mt-4 rounded-[10px] bg-cream-deep/60 px-3 py-2 text-center text-xs text-slate">
+          <div className="mt-4 rounded-[10px] bg-ink-3/60 px-3 py-2 text-center text-xs text-slate">
             Аудио для этой фразы ещё не записано — сейчас это упражнение на чтение, не на слух
           </div>
           <p className="de-phrase mt-6 text-center">{phrase.germanText}</p>
@@ -121,16 +121,20 @@ export function ScoredExercise({ phrases, mode, onFinish }: Props) {
               type="button"
               onClick={() => answer(option.id)}
               disabled={revealed || pending}
+              /*
+                Тот же .answer-opt, что в демо на лендинге и в тесте. Раньше
+                здесь была своя копия утилит: человек, прошедший бесплатный
+                тест и купивший курс, попадал на экран, где то же действие
+                выглядит иначе. Продукт от этого кажется собранным из кусков.
+              */
               className={[
-                'flex min-h-[64px] w-full items-center gap-3 rounded-[18px] border-2 px-4 py-3 text-left text-lg leading-snug',
-                reveal
-                  ? 'border-good bg-good/10 font-bold'
-                  : isChosen
-                    ? 'border-bad bg-bad/10'
-                    : 'border-cream-deep bg-paper',
-              ].join(' ')}
+                'answer-opt',
+                reveal ? 'answer-opt-correct' : isChosen ? 'answer-opt-wrong' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
-              <span aria-hidden className="w-5 shrink-0 text-xl">
+              <span aria-hidden className="answer-mark">
                 {reveal ? '✓' : isChosen ? '✕' : ''}
               </span>
               <span>{option.text}</span>

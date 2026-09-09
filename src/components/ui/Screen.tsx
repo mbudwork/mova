@@ -17,7 +17,7 @@ export function ScreenHeader({ title, back }: { title: string; back?: string }) 
         <Link
           href={back}
           aria-label="Назад"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[var(--line-light)] bg-paper text-xl leading-none"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-paper text-xl leading-none"
         >
           ←
         </Link>

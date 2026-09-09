@@ -31,7 +31,7 @@ export function RuleProgress({
       <div
         role="img"
         aria-label={`Освоено ${learned} из ${total} фраз`}
-        className="relative mt-4 h-11 overflow-hidden rounded-[10px] bg-cream-deep"
+        className="relative mt-4 h-11 overflow-hidden rounded-[10px] bg-ink-3"
       >
         <div
           className="absolute inset-y-0 left-0 bg-gradient-to-b from-gold-2 to-gold"

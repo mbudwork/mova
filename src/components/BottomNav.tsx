@@ -24,7 +24,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Основная навигация"
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--line-light)] bg-paper/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--line)] bg-ink/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="mx-auto flex w-full max-w-[560px]">
         {ITEMS.map((item) => {
@@ -36,7 +36,7 @@ export function BottomNav() {
                 aria-current={active ? 'page' : undefined}
                 className={[
                   'flex min-h-[64px] flex-col items-center justify-center gap-1 text-xs font-bold',
-                  active ? 'text-ink' : 'text-mist-2',
+                  active ? 'text-cream' : 'text-mist-2',
                 ].join(' ')}
               >
                 <span aria-hidden className="text-xl leading-none">

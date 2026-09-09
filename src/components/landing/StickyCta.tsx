@@ -58,7 +58,7 @@ export function StickyCta({
 
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--line)] bg-[rgba(10,11,13,.85)] p-3.5 backdrop-blur-xl"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--line)] bg-[rgba(10,11,13,.9)] p-3.5 backdrop-blur-xl"
       style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
     >
       {/*

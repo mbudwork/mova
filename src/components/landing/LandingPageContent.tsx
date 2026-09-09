@@ -42,8 +42,13 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
     getDemoPhrase(locale),
   ]);
 
-  const coreCount = 232;
-  const profCount = 51;
+  /*
+    Числа берутся из базы. В макете стояло «232 CORE + 51», но в курсе таких
+    цифр нет и не было: 104 общих фразы и 60 профессиональных на сегодня.
+    Обещать на витрине вдвое больше, чем внутри, — прямой путь к возвратам.
+  */
+  const coreCount = scope.corePhrases;
+  const profCount = scope.professionPhrases;
 
   return (
     <main>
@@ -109,7 +114,7 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
               <b className="tnum">{scope.phrases}+</b> фраз
             </span>
             <span>
-              <b className="tnum">{coreCount}</b> CORE
+              <b className="tnum">{coreCount}</b> общих команд
             </span>
             <span>
               <b className="tnum">{scope.trades.length}</b> профессий
@@ -133,21 +138,6 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
                     <span>MOVA</span>
                   </div>
                   <MovaMoment copy={copy} testHref={routes.test} demo={demo} variant="hero" />
-                </div>
-
-                {/*
-                  Плашки, вылетающие за корпус. В макете именно они создают
-                  объём: экран перестаёт быть плоской картинкой и получает
-                  передний план. На узких экранах скрыты — там они налезали бы
-                  на сам телефон.
-                */}
-                <div aria-hidden className="chip -left-6 top-[8%] hidden sm:block">
-                  232 CORE
-                  <small>общий язык стройки</small>
-                </div>
-                <div aria-hidden className="chip -left-10 bottom-[18%] hidden sm:block">
-                  MASTERED
-                  <small>слабое место закрыто</small>
                 </div>
               </div>
             </div>
@@ -184,7 +174,7 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
       </section>
 
       {/* ------------------------------------------------------- ТВОЙ ПУТЬ - */}
-      <section className="surface-dark py-24">
+      <section className="py-24">
         <div className="wrap narrow">
           <p className="eyebrow">{t.pathEyebrow}</p>
           <h2 className="h-sec mt-4">{t.pathTitle}</h2>
@@ -244,7 +234,7 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
                   />
                   <span
                     className={`text-center text-sm font-bold ${
-                      i >= t.repeatStates.length - 2 ? "text-ink" : "text-slate"
+                      i >= t.repeatStates.length - 2 ? "text-cream" : "text-slate"
                     }`}
                   >
                     {state}
@@ -260,7 +250,7 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
       </section>
 
       {/* --------------------------------------------------- РЕЗУЛЬТАТ ---- */}
-      <section className="surface-dark py-24">
+      <section className="py-24">
         <div className="wrap narrow">
           <p className="eyebrow">{t.resultEyebrow}</p>
           <h2 className="h-sec mt-4">{t.resultTitle}</h2>
@@ -313,7 +303,7 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
 
       {/* ------------------------------------------------------- ЦЕНА ----- */}
       <SectionTracker event="pricing_viewed" id="price" />
-      <section id="price" className="surface-dark py-24">
+      <section id="price" className="py-24">
         <div className="wrap narrow">
           <p className="eyebrow">{t.priceEyebrow}</p>
           <h2 className="h-sec mt-4">{t.priceTitle}</h2>
@@ -371,7 +361,7 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
       </section>
 
       {/* ---------------------------------------------- ФИНАЛЬНЫЙ БЛОК ---- */}
-      <section id="test" className="surface-dark py-24 pb-40">
+      <section id="test" className="py-24 pb-40">
         <div className="wrap narrow">
           <p className="eyebrow">{t.finalEyebrow}</p>
           <h2 className="h-sec mt-4">{t.finalTitle}</h2>
