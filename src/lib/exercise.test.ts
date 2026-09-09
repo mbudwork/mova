@@ -75,3 +75,36 @@ describe('buildOptions', () => {
     expect(positions.size).toBeGreaterThan(1);
   });
 });
+
+describe('распределение позиции правильного ответа', () => {
+  /**
+   * Регрессия на слабость младших бит линейного конгруэнтного генератора.
+   *
+   * Прежняя реализация брала индекс как `state % (i + 1)`, а у LCG по модулю
+   * 2^32 младшие биты почти не перемешиваются. На четырёх вариантах правильный
+   * ответ попадал только на первую или третью позицию, причём на первую в 63%
+   * случаев — тест можно было пройти, не слушая аудио вовсе.
+   *
+   * Порог намеренно мягкий (каждая позиция хотя бы в 10% случаев): тест ловит
+   * вырождение генератора, а не проверяет качество случайности.
+   */
+  it('раскладывает правильный ответ по всем четырём позициям', () => {
+    const counts = [0, 0, 0, 0];
+
+    for (let n = 0; n < 400; n += 1) {
+      const target = { id: `t-${n}`, germanText: `G${n}`, translation: `верный ${n}` };
+      const pool = [
+        target,
+        { id: `a-${n}`, germanText: 'A', translation: `ложный A ${n}` },
+        { id: `b-${n}`, germanText: 'B', translation: `ложный B ${n}` },
+        { id: `c-${n}`, germanText: 'C', translation: `ложный C ${n}` },
+      ];
+      const index = buildOptions(target, pool).findIndex((o) => o.isCorrect);
+      counts[index] = (counts[index] ?? 0) + 1;
+    }
+
+    for (const count of counts) {
+      expect(count).toBeGreaterThan(40);
+    }
+  });
+});

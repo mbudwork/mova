@@ -158,23 +158,66 @@ export async function isLessonCompleted(lessonId: string, userId: string): Promi
  * which is appropriate since review phrases by definition come from
  * different lessons.
  */
-export async function getReviewSession(locale: string, limit = 8): Promise<ExercisePhrase[]> {
+export type ReviewSession = {
+  phrases: ExercisePhrase[];
+  /** Тренировка вне расписания: срок ещё не наступил, но слабые фразы есть. */
+  aheadOfSchedule: boolean;
+  /** Сколько слабых фраз всего, включая те, чей срок впереди. */
+  weakTotal: number;
+  /** Когда подойдёт ближайшая, если сейчас очередь пуста. */
+  nextDueAt: string | null;
+};
+
+/**
+ * Очередь повторения, а при пустой очереди — слабые фразы для тренировки
+ * вне расписания.
+ *
+ * Зачем второе. Ошибка переводит фразу в состояние weak, а weak назначает
+ * следующий показ через четыре часа. Человек ошибается девять раз подряд,
+ * заходит в «Повторить» — и видит «пока нечего повторять». Формально верно,
+ * по ощущению — сломано, и именно в тот момент, когда мотивация выше всего.
+ *
+ * Расписание при этом не ломается: record_answer сам игнорирует ответы,
+ * данные раньше срока (v_is_due), так что досрочная тренировка не сдвигает
+ * интервалы ни в одну сторону. Она просто даёт потрогать то, на чём
+ * споткнулся, пока не остыло.
+ */
+export async function getReviewSession(locale: string, limit = 8): Promise<ReviewSession> {
   const supabase = await createSupabaseServerClient();
+  const empty: ReviewSession = {
+    phrases: [],
+    aheadOfSchedule: false,
+    weakTotal: 0,
+    nextDueAt: null,
+  };
 
-  const { data: due, error: dueError } = await supabase.rpc('due_review_phrases', {
-    p_limit: limit,
-  });
-  if (dueError || !due || due.length === 0) return [];
+  const { data: due } = await supabase.rpc('due_review_phrases', { p_limit: limit });
 
-  const ids = due.map((d) => d.phrase_id).filter((id): id is string => id !== null);
-  if (ids.length === 0) return [];
+  let ids = (due ?? []).map((d) => d.phrase_id).filter((id): id is string => id !== null);
+  let aheadOfSchedule = false;
+
+  const { data: weak } = await supabase
+    .from('phrase_progress')
+    .select('phrase_id, next_review_at')
+    .eq('state', 'weak')
+    .order('next_review_at');
+
+  const weakTotal = weak?.length ?? 0;
+
+  if (ids.length === 0) {
+    if (weakTotal === 0) return empty;
+    aheadOfSchedule = true;
+    ids = (weak ?? []).slice(0, limit).map((w) => w.phrase_id);
+  }
+
+  if (ids.length === 0) return empty;
 
   const { data, error } = await supabase
     .from('phrases')
     .select('id, german_text, phrase_translations(text, pronunciation, language_code)')
     .in('id', ids);
 
-  if (error || !data) return [];
+  if (error || !data) return empty;
 
   // Preserve the due-queue's own order (weak-first, then oldest-overdue).
   const order = new Map(ids.map((id, i) => [id, i]));
@@ -191,7 +234,12 @@ export async function getReviewSession(locale: string, limit = 8): Promise<Exerc
     .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 
   const withAudio = await attachAudio(source);
-  return withAudio.map((p) => ({ ...p, options: buildOptions(p, source) }));
+  return {
+    phrases: withAudio.map((p) => ({ ...p, options: buildOptions(p, source) })),
+    aheadOfSchedule,
+    weakTotal,
+    nextDueAt: weak?.[0]?.next_review_at ?? null,
+  };
 }
 
 /**

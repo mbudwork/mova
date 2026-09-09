@@ -66,13 +66,20 @@ function seededShuffle<T>(items: T[], seed: string): T[] {
   const arr = items.slice();
   let state = hashSeed(seed);
   for (let i = arr.length - 1; i > 0; i -= 1) {
-    // Math.imul keeps the multiply inside 32-bit arithmetic. A plain `*`
-    // here overflows Number's safe-integer precision immediately (state can
-    // be up to 2^31, times a million-scale constant), which collapsed every
-    // seed to the same low bits after masking — the shuffle silently stopped
-    // shuffling. Caught by a unit test asserting positions actually vary.
     state = (Math.imul(state, 1103515245) + 12345) >>> 0;
-    const j = state % (i + 1);
+
+    /*
+      Индекс берётся из СТАРШИХ бит состояния, а не через `state % (i + 1)`.
+
+      Линейный конгруэнтный генератор по модулю 2^32 имеет известную слабость:
+      младшие биты почти не перемешиваются — нулевой бит просто чередуется с
+      периодом 2, первый с периодом 4. А `% 2` и `% 4` — это ровно они. На
+      четырёх вариантах ответа правильный оказывался только на первой или
+      третьей позиции, причём на первой в 63% случаев: угадать можно было, не
+      слушая. Деление на 2^32 переводит состояние в дробь [0,1) и использует
+      старшие биты, где перемешивание нормальное.
+    */
+    const j = Math.floor((state / 4294967296) * (i + 1));
     [arr[i], arr[j]] = [arr[j]!, arr[i]!];
   }
   return arr;
