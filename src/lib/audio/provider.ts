@@ -25,6 +25,11 @@ export interface AudioProvider {
   readonly name: 'elevenlabs';
   /** Returns null when no approved audio exists for this phrase yet. */
   getTrack(phraseId: string, speed?: AudioSpeed): Promise<AudioTrack | null>;
+  /**
+   * Ссылки сразу на пачку фраз — два запроса на весь урок вместо двух на
+   * каждую фразу. Возвращает Map: у фразы без одобренной записи ключа нет.
+   */
+  getTracks(phraseIds: string[], speed?: AudioSpeed): Promise<Map<string, AudioTrack>>;
 }
 
 /**
@@ -43,6 +48,78 @@ export interface AudioProvider {
  */
 class ElevenLabsAudioProvider implements AudioProvider {
   readonly name = 'elevenlabs' as const;
+
+  /**
+   * Пакетная выдача.
+   *
+   * Раньше страница урока вызывала getTrack на каждую фразу, и каждый вызов
+   * делал два сетевых запроса: выборку из audio_assets и подпись ссылки. На
+   * уроке из четырнадцати фраз это 28 обращений к Supabase — они шли
+   * параллельно, но всё равно упирались в лимит соединений и в задержку сети.
+   * Отсюда пауза после кнопки «Закончить урок»: следующий урок не рендерился,
+   * пока не отработает вся эта пачка.
+   *
+   * Здесь один запрос за всеми записями и один createSignedUrls на все пути
+   * сразу. Два обращения на урок независимо от числа фраз.
+   */
+  async getTracks(
+    phraseIds: string[],
+    speed: AudioSpeed = 'normal',
+  ): Promise<Map<string, AudioTrack>> {
+    const result = new Map<string, AudioTrack>();
+    if (phraseIds.length === 0) return result;
+
+    const supabase = createSupabaseAdminClient();
+
+    const { data: assets, error } = await supabase
+      .from('audio_assets')
+      .select('phrase_id, storage_path, duration_ms, generated_at')
+      .in('phrase_id', phraseIds)
+      .eq('speed', speed)
+      .eq('approved', true)
+      .order('generated_at', { ascending: false });
+
+    if (error || !assets) return result;
+
+    /*
+      Одна фраза может иметь несколько одобренных записей — например, после
+      перегенерации. Берём самую свежую: выборка уже отсортирована по убыванию
+      даты, поэтому первая встреченная и есть нужная.
+    */
+    const newest = new Map<string, { path: string; durationMs: number | null }>();
+    for (const asset of assets) {
+      // phrase_id в схеме nullable: строка манифеста может существовать до
+      // того, как известно, к какой фразе она относится. Такая запись — не
+      // трек, и связать её не с чем.
+      const phraseId = asset.phrase_id;
+      if (!phraseId || !asset.storage_path || newest.has(phraseId)) continue;
+      newest.set(phraseId, {
+        path: asset.storage_path,
+        durationMs: asset.duration_ms,
+      });
+    }
+
+    if (newest.size === 0) return result;
+
+    const paths = [...newest.values()].map((v) => v.path);
+    const { data: signed, error: signError } = await supabase.storage
+      .from('audio')
+      .createSignedUrls(paths, 60 * 60);
+
+    if (signError || !signed) return result;
+
+    const urlByPath = new Map(
+      signed.filter((s) => s.signedUrl && s.path).map((s) => [s.path as string, s.signedUrl]),
+    );
+
+    for (const [phraseId, meta] of newest) {
+      const url = urlByPath.get(meta.path);
+      if (!url) continue;
+      result.set(phraseId, { url, durationMs: meta.durationMs, speed });
+    }
+
+    return result;
+  }
 
   async getTrack(phraseId: string, speed: AudioSpeed = 'normal'): Promise<AudioTrack | null> {
     const supabase = createSupabaseAdminClient();

@@ -128,11 +128,6 @@ export async function searchPhrases(locale: string, query: string): Promise<Phra
     };
   });
 
-  const audio = createAudioProvider();
-  return Promise.all(
-    rows.map(async (row) => ({
-      ...row,
-      audioUrl: (await audio.getTrack(row.id))?.url ?? null,
-    })),
-  );
+  const tracks = await createAudioProvider().getTracks(rows.map((row) => row.id));
+  return rows.map((row) => ({ ...row, audioUrl: tracks.get(row.id)?.url ?? null }));
 }

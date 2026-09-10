@@ -46,9 +46,6 @@ export type LandingCopy = {
   afterLabel: string;
   afterText: string;
   beforeAfterFootnote: string;
-  videoTitle: string;
-  videoPending: string;
-  videoPendingSub: string;
   scopeTitle: string;
   scopeLessons: string;
   scopePhrases: string;
@@ -116,9 +113,6 @@ const ru: LandingCopy = {
   afterText: 'Сначала закончи эту стену — потом остальное.',
   beforeAfterFootnote:
     'MOVA не обещает свободную речь через неделю. Она учит понимать рабочие указания и отвечать в обычных ситуациях на объекте.',
-  videoTitle: 'MOVA в деле',
-  videoPending: 'Видео готовится',
-  videoPendingSub: 'Покажем полный путь: занятие, команда прораба, ответ и прогресс.',
   scopeTitle: 'Что внутри',
   scopeLessons: 'занятий',
   scopePhrases: 'рабочих фраз',
@@ -220,9 +214,6 @@ const uk: LandingCopy = {
   afterText: 'Спочатку закінчи цю стіну — потім решту.',
   beforeAfterFootnote:
     'MOVA не обіцяє вільну мову за тиждень. Вона вчить розуміти робочі вказівки та відповідати у звичних ситуаціях на об’єкті.',
-  videoTitle: 'MOVA у дії',
-  videoPending: 'Відео готується',
-  videoPendingSub: 'Покажемо повний шлях: заняття, команда прораба, відповідь і прогрес.',
   scopeTitle: 'Що всередині',
   scopeLessons: 'занять',
   scopePhrases: 'робочих фраз',

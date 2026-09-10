@@ -48,13 +48,10 @@ function pickByLocale<T extends { language_code: string }>(rows: T[], locale: st
 async function attachAudio<T extends { id: string }>(
   rows: T[],
 ): Promise<(T & { audioUrl: string | null })[]> {
-  const audio = createAudioProvider();
-  return Promise.all(
-    rows.map(async (row) => ({
-      ...row,
-      audioUrl: (await audio.getTrack(row.id))?.url ?? null,
-    })),
-  );
+  // Один пакетный вызов вместо запроса на каждую фразу: на уроке из
+  // четырнадцати фраз это два обращения к Supabase вместо двадцати восьми.
+  const tracks = await createAudioProvider().getTracks(rows.map((row) => row.id));
+  return rows.map((row) => ({ ...row, audioUrl: tracks.get(row.id)?.url ?? null }));
 }
 
 export async function getCourseProgress(): Promise<CourseProgress> {
