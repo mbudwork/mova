@@ -6,7 +6,12 @@ import { Button } from '@/components/ui/Button';
 import { SELF_LEVEL_LABELS, type SelfReportedLevel } from '@/types/domain';
 import type { OnboardingResult } from '@/app/onboarding/actions';
 
-export type ProfessionOption = { id: string; name: string };
+export type ProfessionOption = {
+  id: string;
+  name: string;
+  /** Есть ли у профессии собственные уроки. У «разнорабочего» их нет. */
+  hasOwnLessons: boolean;
+};
 
 const LEVEL_ORDER: SelfReportedLevel[] = ['none', 'words', 'simple_commands', 'some_speaking'];
 
@@ -104,7 +109,12 @@ export function OnboardingFlow({
                 checked={professionId === profession.id}
                 onChange={() => setProfessionId(profession.id)}
               >
-                {profession.name}
+                <span className="block">{profession.name}</span>
+                {!profession.hasOwnLessons ? (
+                  <span className="mt-1 block text-sm font-normal opacity-80">
+                    Только общая часть — отдельного модуля пока нет
+                  </span>
+                ) : null}
               </Choice>
             ))}
           </div>

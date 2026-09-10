@@ -2275,7 +2275,7 @@ export type Database = {
     Functions: {
       accessible_lessons: { Args: Record<string, never>; Returns: { lesson_id: string | null; lesson_slug: string | null; module_id: string | null; module_order: number | null; lesson_order: number | null; scope: 'core' | 'profession' | null; profession_id: string | null }[] };
       complete_lesson: { Args: { p_lesson_id: string }; Returns: boolean };
-      course_progress: { Args: Record<string, never>; Returns: { lessons_total: number | null; lessons_completed: number | null; phrases_total: number | null; phrases_learned: number | null }[] };
+      course_progress: { Args: Record<string, never>; Returns: { lessons_total: number | null; lessons_completed: number | null; phrases_total: number | null; phrases_learned: number | null; phrases_started: number | null }[] };
       due_review_phrases: { Args: { p_limit?: number }; Returns: { phrase_id: string | null; state: 'new' | 'learning' | 'recognizing' | 'understood' | 'weak' | 'mastered' | null; next_review_at: string | null }[] };
       funnel_summary: { Args: { p_from?: string; p_to?: string; p_locale?: string }; Returns: { utm_campaign: string | null; landing_locale: string | null; landing_views: number | null; tests_started: number | null; tests_completed: number | null; offers_viewed: number | null; purchase_clicks: number | null; checkouts_started: number | null; purchases: number | null }[] };
       handle_new_user: { Args: Record<string, never>; Returns: unknown };

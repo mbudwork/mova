@@ -48,9 +48,10 @@ export default async function HomePage() {
 
       <div className="mt-6">
         <RuleProgress
+          started={progress.phrasesStarted}
           learned={progress.phrasesLearned}
           total={progress.phrasesTotal}
-          label="Освоенные фразы"
+          label="Пройденные фразы"
         />
       </div>
 

@@ -7,16 +7,20 @@
  * turning the home screen into a dashboard of KPIs.
  */
 export function RuleProgress({
+  started,
   learned,
   total,
   label,
 }: {
+  /** Фраз тронуто — растёт после каждого занятия. Это и рисует шкала. */
+  started: number;
+  /** Из них закреплено: верный ответ при повторе через день и позже. */
   learned: number;
   total: number;
   label: string;
 }) {
   const safeTotal = Math.max(total, 1);
-  const ratio = Math.min(learned / safeTotal, 1);
+  const ratio = Math.min(started / safeTotal, 1);
   const ticks = 20;
 
   return (
@@ -24,13 +28,13 @@ export function RuleProgress({
       <div className="flex items-baseline justify-between">
         <span className="eyebrow">{label}</span>
         <span className="text-sm font-bold tabular-nums text-slate">
-          {learned} / {total}
+          {started} / {total}
         </span>
       </div>
 
       <div
         role="img"
-        aria-label={`Освоено ${learned} из ${total} фраз`}
+        aria-label={`Пройдено ${started} из ${total} фраз, закреплено ${learned}`}
         className="relative mt-4 h-11 overflow-hidden rounded-[10px] bg-ink-3"
       >
         <div
@@ -50,6 +54,19 @@ export function RuleProgress({
           ))}
         </div>
       </div>
+
+      {/*
+        Две цифры вместо одной. Шкала показывает пройденное — оно растёт в тот
+        же вечер и отвечает на вопрос «я вообще двигаюсь?». Закреплённое стоит
+        подписью: до него фраза доходит только при верном ответе на повторе
+        через день, и делать его главным числом значило показывать ноль
+        человеку, который только что без ошибок прошёл десять уроков.
+      */}
+      <p className="mt-3 text-sm text-slate">
+        {learned > 0
+          ? `Закреплено: ${learned}. Остальные вернутся на повторении.`
+          : 'Закреплённых пока нет — фраза считается закреплённой после верного повтора на следующий день.'}
+      </p>
     </div>
   );
 }

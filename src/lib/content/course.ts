@@ -26,7 +26,10 @@ export type CourseProgress = {
   lessonsTotal: number;
   lessonsCompleted: number;
   phrasesTotal: number;
+  /** Закреплены: верный ответ при повторе, когда подошёл срок. */
   phrasesLearned: number;
+  /** Тронуты: по фразе есть хоть один ответ. Растёт каждое занятие. */
+  phrasesStarted: number;
 };
 
 function pickByLocale<T extends { language_code: string }>(rows: T[], locale: string): T | null {
@@ -59,14 +62,33 @@ export async function getCourseProgress(): Promise<CourseProgress> {
   const { data, error } = await supabase.rpc('course_progress');
   const row = data?.[0];
   if (error || !row) {
-    return { lessonsTotal: 0, lessonsCompleted: 0, phrasesTotal: 0, phrasesLearned: 0 };
+    return {
+      lessonsTotal: 0,
+      lessonsCompleted: 0,
+      phrasesTotal: 0,
+      phrasesLearned: 0,
+      phrasesStarted: 0,
+    };
   }
   return {
     lessonsTotal: row.lessons_total ?? 0,
     lessonsCompleted: row.lessons_completed ?? 0,
     phrasesTotal: row.phrases_total ?? 0,
     phrasesLearned: row.phrases_learned ?? 0,
+    phrasesStarted: row.phrases_started ?? 0,
   };
+}
+
+/**
+ * Уроки, доступные текущему пользователю: общая часть плюс выбранная им
+ * профессия. Тот же источник, что у course_progress — иначе экраны начинают
+ * спорить друг с другом о размере курса.
+ */
+async function accessibleLessonIds(): Promise<Set<string> | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('accessible_lessons');
+  if (error || !data) return null;
+  return new Set(data.map((row) => row.lesson_id).filter((id): id is string => id !== null));
 }
 
 export async function getNextLessonSlug(): Promise<string | null> {
@@ -262,19 +284,28 @@ export async function getListeningSession(locale: string, limit = 8): Promise<Ex
   const { data, error } = await supabase
     .from('lesson_phrases')
     .select(
-      `role,
+      `role, lesson_id,
        lessons!inner(is_published),
        phrases!inner(id, german_text,
          phrase_translations(text, pronunciation, language_code))`,
     )
     .eq('role', 'primary')
     .eq('lessons.is_published', true)
-    .limit(300);
+    .limit(400);
 
   if (error || !data) return [];
 
+  /*
+    Только общая часть и своя профессия. Иначе плиточнику в тренировку
+    прилетали команды электрика — фразы про фазу и ноль, которых он не видел
+    ни в одном своём уроке. Человек справедливо считает это бессмыслицей: его
+    просят понять то, чему не учили.
+  */
+  const accessible = await accessibleLessonIds();
+  const rows = accessible ? data.filter((row) => accessible.has(row.lesson_id)) : data;
+
   const seen = new Set<string>();
-  const pool = data.flatMap((link) => {
+  const pool = rows.flatMap((link) => {
     const phrase = link.phrases;
     if (!phrase || seen.has(phrase.id)) return [];
     seen.add(phrase.id);
@@ -339,6 +370,18 @@ export async function getLessonList(locale: string): Promise<LessonListItem[]> {
 
   if (error || !data) return [];
 
+  /*
+    Отсекаем чужие профессии.
+
+    Раньше список показывал все 57 опубликованных уроков, а счётчик на главной
+    считал только доступные — общую часть плюс выбранную специальность. Отсюда
+    «пройдено 28 из 32» на одном экране и «28 из 57» на другом. Хуже того,
+    плиточник видел в списке уроки электрика и мог их открыть, хотя курс ему
+    их не обещал и в его прогресс они не входят.
+  */
+  const accessible = await accessibleLessonIds();
+  const rows = accessible ? data.filter((row) => accessible.has(row.id)) : data;
+
   const { data: progress } = await supabase
     .from('lesson_progress')
     .select('lesson_id, status');
@@ -347,7 +390,7 @@ export async function getLessonList(locale: string): Promise<LessonListItem[]> {
     (progress ?? []).filter((r) => r.status === 'completed').map((r) => r.lesson_id),
   );
 
-  return data.map((row) => {
+  return rows.map((row) => {
     const translation = pickByLocale(row.lesson_translations, locale);
     return {
       slug: row.slug,
