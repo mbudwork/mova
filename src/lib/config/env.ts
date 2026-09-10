@@ -21,6 +21,16 @@ const schema = z.object({
   STRIPE_PRICE_ID: z.string().optional(),
   ELEVENLABS_API_KEY: z.string().optional(),
 
+  /*
+    Транзакционная почта. Отсутствие ключа не мешает работе: письмо
+    подтверждения тогда не уходит, а факт пропуска пишется в лог. Так сделано
+    осознанно — оплата не должна падать из-за недоставленного письма, но и
+    молчать о непосланном обязательном документе нельзя.
+  */
+  RESEND_API_KEY: z.string().optional(),
+  MAIL_FROM: z.string().default('MOVA <noreply@send.mbud.de>'),
+  MAIL_REPLY_TO: z.string().default('info@mbud.agency'),
+
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   ALLOW_DEMO_MODE_IN_PRODUCTION: z.enum(['true', 'false']).default('false'),
 });
@@ -42,6 +52,8 @@ export const paymentsMode = env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET ?
  * not whether existing ones can be played. Playback reads finished files from
  * storage and needs no key — see src/lib/audio/provider.ts.
  */
+export const mailMode = env.RESEND_API_KEY ? 'resend' : 'disabled';
+
 export const audioGenerationMode = env.ELEVENLABS_API_KEY ? 'elevenlabs' : 'unavailable';
 export const isDemoMode = paymentsMode === 'mock';
 export const isProduction = env.NODE_ENV === 'production';

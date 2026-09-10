@@ -3,6 +3,7 @@ import type Stripe from 'stripe';
 import { getStripe } from '@/lib/payments/stripe';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { findOrCreateBuyer } from '@/lib/payments/buyer';
+import { sendPurchaseConfirmation } from '@/lib/email/purchase-confirmation';
 import { env, paymentsMode } from '@/lib/config/env';
 
 /**
@@ -133,6 +134,66 @@ export async function POST(request: Request) {
     .eq('status', 'pending');
 
   if (leadError) console.error('[stripe] lead close failed', leadError, userId);
+
+  /*
+    Достраиваем запись согласия. В момент клика по чекбоксам покупателя ещё не
+    существовало как аккаунта — теперь известны и он, и адрес почты, и факт
+    оплаты. Именно эта строка отвечает на вопрос «кто и что принял перед тем,
+    как заплатить», если человек потребует возврат.
+
+    Ошибка здесь не валит вебхук: доступ уже выдан, платёж состоялся, и
+    возвращать Stripe пятисотку значило бы получить повторную доставку и
+    попытку выдать доступ ещё раз. Запись в логе достаточна, чтобы связать
+    вручную.
+  */
+  const consentId = session.metadata?.consent_id;
+  if (consentId) {
+    const { error: consentError } = await supabase
+      .from('checkout_consents')
+      .update({
+        user_id: userId,
+        email: session.customer_details?.email ?? session.customer_email ?? null,
+        payment_status: 'paid',
+        entitlement_granted_at: new Date().toISOString(),
+      })
+      .eq('id', consentId);
+
+    if (consentError) console.error('[stripe] не удалось достроить согласие', consentError, consentId);
+  } else {
+    // Сессия без consent_id — значит она создана в обход формы согласий.
+    // На такую покупку сослаться на утрату права отказа будет нечем.
+    console.warn('[stripe] оплаченная сессия без consent_id', session.id, userId);
+  }
+
+  /*
+    Письмо-подтверждение. Это не вежливость, а обязательный документ: право ЕС
+    требует подтвердить договор на долговечном носителе и зафиксировать в нём
+    согласие на немедленное предоставление контента.
+
+    Отправляется последним и не влияет на ответ Stripe. Если письмо не ушло —
+    ключа нет, провайдер лёг, адрес с опечаткой, — доступ у человека уже есть,
+    и возвращать пятисотку значило бы получить повторную доставку и повторную
+    выдачу. Факт неотправки виден по пустому confirmation_email_sent_at:
+    именно по этому полю потом видно, кому документ так и не дошёл.
+  */
+  const buyerEmail = session.customer_details?.email ?? session.customer_email;
+  if (buyerEmail) {
+    const sent = await sendPurchaseConfirmation({
+      to: buyerEmail,
+      locale: session.metadata?.locale === 'uk' ? 'uk' : 'ru',
+      sessionId: session.id,
+      purchasedAt: new Date(session.created * 1000),
+    });
+
+    if (sent && consentId) {
+      await supabase
+        .from('checkout_consents')
+        .update({ confirmation_email_sent_at: new Date().toISOString() })
+        .eq('id', consentId);
+    }
+
+    if (!sent) console.error('[stripe] подтверждение не отправлено', buyerEmail, session.id);
+  }
 
   console.info('[stripe] entitlement granted', userId, session.id);
   return NextResponse.json({ received: true });
