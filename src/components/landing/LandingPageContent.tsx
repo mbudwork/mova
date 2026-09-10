@@ -224,27 +224,30 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
           <h2 className="h-sec mt-4">{t.repeatTitle}</h2>
           <p className="body-copy mt-4">{t.repeatSub}</p>
 
-          <div className="mt-12 flex flex-wrap items-start justify-center">
-            {t.repeatStates.map((state, i) => (
-              <div key={state} className="flex items-start">
-                <div className="flex w-[92px] flex-col items-center gap-3">
+          {/*
+            На телефоне — сетка два на два, на широком экране — строка. Раньше
+            это была одна строка из четырёх колонок по 92px с соединителями по
+            44px: пятьсот пикселей в макете шириной триста восемьдесят.
+            Подписи налезали друг на друга, а соединители уводили за край.
+            Соединители убраны совсем — между ячейками сетки они указывали бы
+            не туда.
+          */}
+          <div className="mt-12 grid grid-cols-2 gap-x-4 gap-y-6 sm:flex sm:items-start sm:justify-center sm:gap-8">
+            {t.repeatStates.map((state, i) => {
+              const active = i >= t.repeatStates.length - 2;
+              return (
+                <div key={state} className="flex items-center gap-3 sm:flex-col sm:gap-3">
+                  <span aria-hidden className={`mem-dot ${active ? 'mem-dot-on' : ''}`} />
                   <span
-                    aria-hidden
-                    className={`mem-dot ${i >= t.repeatStates.length - 2 ? "mem-dot-on" : ""}`}
-                  />
-                  <span
-                    className={`text-center text-sm font-bold ${
-                      i >= t.repeatStates.length - 2 ? "text-cream" : "text-slate"
+                    className={`text-sm font-bold sm:text-center ${
+                      active ? 'text-cream' : 'text-slate'
                     }`}
                   >
                     {state}
                   </span>
                 </div>
-                {i < t.repeatStates.length - 1 ? (
-                  <span aria-hidden className="mem-connector mt-2" />
-                ) : null}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
