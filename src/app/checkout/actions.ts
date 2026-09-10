@@ -6,6 +6,8 @@ import { getCurrentUser, requireUser } from '@/lib/auth/guards';
 import { checkoutMode } from '@/lib/pricing';
 import { env, paymentsMode } from '@/lib/config/env';
 import { getStripe, checkoutUrls } from '@/lib/payments/stripe';
+import { attachSessionToConsent, recordCheckoutConsent } from '@/lib/legal/consent';
+import type { Locale } from '@/lib/locale';
 
 export type LeadResult = { ok: true } | { ok: false; error: string };
 export type CheckoutSessionResult = { ok: true; url: string } | { ok: false; error: string };
@@ -79,7 +81,20 @@ export async function submitCheckoutLead(locale: string): Promise<LeadResult> {
  * after Stripe has confirmed the charge with a signature we verify. A user who
  * closes the tab on the payment page must not end up with access.
  */
-export async function startStripeCheckout(locale: string): Promise<CheckoutSessionResult> {
+export async function startStripeCheckout(
+  locale: Locale,
+  consent: { terms: boolean; immediateAccess: boolean },
+): Promise<CheckoutSessionResult> {
+  /*
+    Согласия проверяются на сервере, а не только выключенной кнопкой в форме.
+    Кнопка — удобство; серверная проверка — то, что нельзя обойти, отправив
+    запрос мимо интерфейса. Без обоих согласий сессия оплаты не создаётся
+    вовсе, потому что доказательства согласия у нас в этот момент нет.
+  */
+  if (!consent.terms || !consent.immediateAccess) {
+    return { ok: false, error: 'Отметь оба пункта — без них оформить заказ нельзя.' };
+  }
+
   // getCurrentUser, не requireUser: оплата возможна без аккаунта. Залогиненный
   // покупатель по-прежнему привязывается к своему аккаунту сразу, анонимный —
   // по адресу почты, который соберёт страница Stripe.
@@ -98,6 +113,20 @@ export async function startStripeCheckout(locale: string): Promise<CheckoutSessi
   // единственный след человека, дошедшего до кассы и передумавшего.
   // У анонима записывать нечего — checkout_leads привязана к профилю.
   if (user) await submitCheckoutLead(locale);
+
+  /*
+    Журнал согласий заполняется ДО создания сессии. Если порядок перевернуть,
+    сбой между шагами оставит оплату без доказательства согласия — а именно оно
+    защищает от возврата денег после пройденного курса. Обратный сбой безвреден:
+    запись без платежа так и останется в статусе pending.
+  */
+  const consentId = await recordCheckoutConsent({
+    locale,
+    userId: user?.id ?? null,
+    email: user?.email ?? null,
+  });
+
+  if (!consentId) return { ok: false, error: GENERIC_ERROR };
 
   try {
     const stripe = getStripe();
@@ -119,6 +148,9 @@ export async function startStripeCheckout(locale: string): Promise<CheckoutSessi
         ...(user ? { user_id: user.id } : {}),
         product_code: 'FULL_ACCESS',
         locale,
+        // По нему вебхук найдёт запись согласия и достроит её данными о
+        // покупателе, которых в момент клика ещё не было.
+        consent_id: consentId,
       },
       locale: locale === 'uk' ? 'ru' : 'ru',
     });
@@ -127,6 +159,8 @@ export async function startStripeCheckout(locale: string): Promise<CheckoutSessi
       console.error('[checkout] Stripe returned a session without a URL', session.id);
       return { ok: false, error: GENERIC_ERROR };
     }
+
+    await attachSessionToConsent(consentId, session.id);
 
     return { ok: true, url: session.url };
   } catch (error) {

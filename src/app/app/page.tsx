@@ -92,6 +92,12 @@ export default async function HomePage() {
           hint="Общая часть и твоя профессия"
         />
         <Tile
+          href="/app/profession"
+          glyph="🛠"
+          title="Моя профессия"
+          hint="Посмотреть или поменять специальность"
+        />
+        <Tile
           href="/app/review"
           glyph="🔁"
           title="Повторить слабые фразы"
