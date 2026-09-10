@@ -218,6 +218,59 @@ export type Database = {
           },
         ];
       };
+      checkout_consents: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          email: string | null;
+          locale: string;
+          terms_version: string;
+          refund_policy_version: string;
+          privacy_version: string;
+          consent_form_version: string;
+          terms_consent_text: string;
+          immediate_access_consent_text: string;
+          terms_accepted: boolean;
+          immediate_access_accepted: boolean;
+          ip_address: string | null;
+          user_agent: string | null;
+          stripe_checkout_session_id: string | null;
+          payment_status: string | null;
+          entitlement_granted_at: string | null;
+          confirmation_email_sent_at: string | null;
+          consented_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          email?: string | null;
+          locale?: string;
+          terms_version: string;
+          refund_policy_version: string;
+          privacy_version: string;
+          consent_form_version: string;
+          terms_consent_text: string;
+          immediate_access_consent_text: string;
+          terms_accepted: boolean;
+          immediate_access_accepted: boolean;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          stripe_checkout_session_id?: string | null;
+          payment_status?: string | null;
+          entitlement_granted_at?: string | null;
+          confirmation_email_sent_at?: string | null;
+          consented_at?: string;
+        };
+        Update: {
+          user_id?: string | null;
+          email?: string | null;
+          stripe_checkout_session_id?: string | null;
+          payment_status?: string | null;
+          entitlement_granted_at?: string | null;
+          confirmation_email_sent_at?: string | null;
+        };
+        Relationships: [];
+      };
       checkout_leads: {
         Row: {
           id: string;
