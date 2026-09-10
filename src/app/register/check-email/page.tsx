@@ -1,17 +1,23 @@
 import Link from 'next/link';
 import { Screen, ScreenHeader } from '@/components/ui/Screen';
 import { Brand } from '@/components/ui/Brand';
+import { ButtonLink } from '@/components/ui/Button';
 import { ResendForm } from './ResendForm';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * The screen that was missing.
+ * Экран после регистрации, которая не выдала сессию.
  *
- * Registration with email confirmation enabled has three outcomes the user
- * cannot tell apart on their own — new account, address already registered,
- * letter lost in spam — and all three are answered the same way: open the
- * inbox. So one screen covers all three, and it never says which case it is.
+ * Раньше он утверждал, что письмо отправлено. С выключенным подтверждением
+ * почты это неправда всегда: попасть сюда можно только зарегистрировавшись на
+ * уже занятый адрес, а в этом случае Supabase намеренно не отправляет ничего.
+ * Человек шёл проверять ящик и спам, ничего не находил и уходил — хотя войти
+ * мог сразу.
+ *
+ * Текст намеренно не говорит, занят адрес или нет: иначе форма регистрации
+ * стала бы способом проверять чужие почты. Но действия он предлагает такие,
+ * которые сработают в любом случае.
  */
 export default async function CheckEmailPage({
   searchParams,
@@ -26,39 +32,37 @@ export default async function CheckEmailPage({
         <div className="pt-8">
           <Brand />
         </div>
-        <ScreenHeader title="Проверь почту" back="/" />
+        <ScreenHeader title="Почти готово" back="/" />
 
         {resent ? (
-          <p className="mb-6 notice notice-gold">
-            Письмо отправлено ещё раз.
+          <p className="notice notice-gold mb-6">
+            Если для этого адреса нужно письмо, оно отправлено.
           </p>
         ) : null}
 
-        <p className="text-lg">
-          Мы отправили письмо со ссылкой. Открой его и нажми кнопку внутри — после этого
-          можно войти.
+        <p className="text-lg leading-snug">
+          Возможно, аккаунт с такой почтой у тебя уже есть — тогда новый не создаётся, и войти
+          нужно старым паролем.
         </p>
 
-        <p className="mt-4 text-slate">
-          До перехода по ссылке вход не сработает: аккаунт уже создан, но почта ещё не
-          подтверждена.
-        </p>
-
-        <p className="mt-4 text-slate">
-          Письма нет? Загляни в «Спам» и «Промоакции» — оно приходит туда чаще, чем
-          хотелось бы. Если и там пусто, отправь ещё раз.
-        </p>
-
-        <div className="mt-8">
-          <ResendForm />
+        <div className="mt-8 space-y-3">
+          <ButtonLink href="/login" size="lg">
+            Войти
+          </ButtonLink>
+          <Link href="/reset-password" className="btn btn-ghost btn-block">
+            Не помню пароль
+          </Link>
         </div>
 
-        <p className="pt-8 text-center text-slate">
-          Уже подтвердил?{' '}
-          <Link href="/login" className="font-bold text-gold-deep underline">
-            Войти
-          </Link>
-        </p>
+        <div className="mt-10 border-t border-[var(--line)] pt-8">
+          <p className="text-slate">
+            Если аккаунта раньше не было и ты ждёшь письмо с подтверждением — проверь «Спам», а при
+            необходимости отправь его ещё раз.
+          </p>
+          <div className="mt-5">
+            <ResendForm />
+          </div>
+        </div>
       </Screen>
     </main>
   );

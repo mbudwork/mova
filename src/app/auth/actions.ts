@@ -79,22 +79,24 @@ export async function signUp(_prev: AuthResult, formData: FormData): Promise<Aut
 
   if (error) return { error: 'Не получилось создать аккаунт. Проверь почту и попробуй ещё раз.' };
 
-  /**
-   * The whole bug lived on this line.
-   *
-   * With email confirmation enabled, signUp succeeds but returns no session:
-   * the account exists and is unusable until the link is clicked. The old code
-   * redirected to /onboarding regardless, proxy.ts saw an anonymous request
-   * and bounced it to /login, and the user was left at a login form with no
-   * idea that a letter had been sent at all.
-   *
-   * A null session is therefore not an error — it is the "check your inbox"
-   * state, and it needs its own screen.
-   *
-   * This also covers the already-registered case: Supabase returns a user with
-   * an empty identities array and no session, deliberately, so that signup
-   * cannot be used to enumerate addresses. Same screen, same wording.
-   */
+  /*
+    Регистрация прошла, но сессии нет. Причин ровно две, и обе ведут на один
+    экран — потому что различить их для пользователя значило бы разгласить,
+    занят адрес или свободен, а это превращает форму регистрации в способ
+    проверять чужие почты.
+
+      1. Подтверждение почты включено — аккаунт создан, но не активен, пока
+         человек не нажмёт ссылку в письме.
+      2. Адрес уже зарегистрирован. Supabase намеренно отвечает так же: отдаёт
+         пользователя с пустым identities и без сессии, и НИКАКОГО письма при
+         этом не шлёт — подтверждать нечего.
+
+    Пока подтверждение выключено (а сейчас так), в жизни случается только
+    второй вариант. Поэтому экран больше не обещает письмо: обещать его в
+    случае, когда оно не отправлялось, — значит отправить человека ждать и
+    искать в спаме то, чего нет. Вместо этого он предлагает войти или
+    восстановить пароль, что работает в обеих ситуациях.
+  */
   if (!data.session) {
     redirect('/register/check-email');
   }
