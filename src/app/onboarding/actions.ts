@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth/guards';
+import { trackServer } from '@/lib/analytics/server';
 import type { SelfReportedLevel } from '@/types/domain';
 
 const LEVELS: SelfReportedLevel[] = ['none', 'words', 'simple_commands', 'some_speaking'];
@@ -51,6 +52,14 @@ export async function completeOnboarding(
   await supabase
     .from('user_professions')
     .upsert({ user_id: user.id, profession_id: professionId, is_primary: true });
+
+  /*
+    Событие пишется с сервера, а не из формы: redirect() ниже уводит со
+    страницы, и клиентский вызов успевал бы не всегда. До сих пор его не было
+    совсем — при десяти пройденных онбордингах в таблице ноль записей, и
+    посчитать долю дошедших от регистрации до первого урока было нечем.
+  */
+  await trackServer('onboarding_completed', { profession_id: professionId }, user.id);
 
   revalidatePath('/app');
   redirect('/app');

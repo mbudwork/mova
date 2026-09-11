@@ -4,6 +4,7 @@ import { getStripe } from '@/lib/payments/stripe';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { findOrCreateBuyer } from '@/lib/payments/buyer';
 import { sendPurchaseConfirmation } from '@/lib/email/purchase-confirmation';
+import { trackServer } from '@/lib/analytics/server';
 import { env, paymentsMode } from '@/lib/config/env';
 
 /**
@@ -194,6 +195,18 @@ export async function POST(request: Request) {
 
     if (!sent) console.error('[stripe] подтверждение не отправлено', buyerEmail, session.id);
   }
+
+  /*
+    Событие покупки пишется здесь, а не в браузере: подтверждение приходит от
+    Stripe, когда вкладка покупателя уже закрыта. До сих пор его не писал
+    никто — в таблице был ноль purchase_completed при трёх реальных оплатах, и
+    воронка обрывалась на клике по кнопке.
+  */
+  await trackServer(
+    'purchase_completed',
+    { session_id: session.id, amount_total: session.amount_total, currency: session.currency },
+    userId,
+  );
 
   console.info('[stripe] entitlement granted', userId, session.id);
   return NextResponse.json({ received: true });

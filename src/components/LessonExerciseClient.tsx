@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ScoredExercise } from '@/components/ScoredExercise';
 import { completeLesson } from '@/lib/content/actions';
+import { track } from '@/lib/analytics/client';
 import type { ExercisePhrase } from '@/lib/content/course';
 
 /** Thin client wrapper: ScoredExercise handles the per-question loop, this
@@ -27,6 +28,11 @@ export function LessonExerciseClient({
         setError(result.error);
         return;
       }
+      // Событие не писалось вовсе: в базе 34 пройденных урока и ноль
+      // lesson_completed. Воронка обрывалась ровно там, где начинается
+      // удержание, — а именно оно решает, вернётся человек завтра или нет.
+      track('lesson_completed', { lesson_id: lessonId });
+
       router.push(result.nextSlug ? `/app/lesson/${result.nextSlug}` : '/app');
     });
   }
@@ -42,7 +48,16 @@ export function LessonExerciseClient({
   return (
     <>
       <ScoredExercise phrases={phrases} mode="lesson" onFinish={finish} />
-      {pending ? <p className="sr-only" role="status">Сохраняю урок…</p> : null}
+      {/*
+        Ожидание теперь видно глазами, а не только экранному диктору. Переход
+        к следующему уроку занимает заметное время — грузятся фразы и ссылки на
+        озвучку, — и без подписи кнопка выглядела зависшей.
+      */}
+      {pending ? (
+        <p role="status" className="mt-4 text-center text-slate">
+          Сохраняю урок…
+        </p>
+      ) : null}
     </>
   );
 }
