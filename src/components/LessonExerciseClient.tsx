@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ScoredExercise } from '@/components/ScoredExercise';
 import { completeLesson } from '@/lib/content/actions';
@@ -13,11 +13,30 @@ import type { ExercisePhrase } from '@/lib/content/course';
 export function LessonExerciseClient({
   lessonId,
   phrases,
+  followingSlug,
 }: {
   lessonId: string;
   phrases: ExercisePhrase[];
+  /** Урок, который пойдёт следом. Грузится заранее, пока человек отвечает. */
+  followingSlug?: string | null;
 }) {
   const router = useRouter();
+
+  /*
+    Предзагрузка следующего урока сразу при открытии текущего.
+
+    Пауза после кнопки «Закончить урок» — это не сохранение, оно занимает
+    миллисекунды. Это рендер следующей страницы: запросы за фразами,
+    переводами и подписанными ссылками на озвучку. Человек в этот момент уже
+    нажал и ждёт, глядя на неподвижный экран.
+
+    Пока он отвечает на десяток вопросов, браузер успевает загрузить следующий
+    урок в фоне, и переход становится мгновенным. Если следующий урок угадан
+    неверно — ничего не ломается, загрузка просто не пригодится.
+  */
+  useEffect(() => {
+    if (followingSlug) router.prefetch(`/app/lesson/${followingSlug}`);
+  }, [followingSlug, router]);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 

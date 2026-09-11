@@ -332,6 +332,42 @@ export async function getListeningSession(locale: string, limit = 8): Promise<Ex
   return audible.map((p) => ({ ...p, options: buildOptions(p, audible) }));
 }
 
+/**
+ * Урок, который пойдёт следом за текущим по порядку.
+ *
+ * Нужен, чтобы браузер успел загрузить его, пока человек ещё отвечает на
+ * вопросы. next_lesson() для этого не годится: она возвращает первый
+ * НЕПРОЙДЕННЫЙ урок, а до завершения текущего это он сам и есть.
+ *
+ * Берётся следующий по order_index среди доступных — тот же, на который
+ * приложение переключится в большинстве случаев. Если угадали неверно,
+ * ничего не ломается: предзагрузка просто не пригодится.
+ */
+export async function getFollowingLessonSlug(currentLessonId: string): Promise<string | null> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: current } = await supabase
+    .from('lessons')
+    .select('order_index')
+    .eq('id', currentLessonId)
+    .single();
+
+  if (!current) return null;
+
+  const accessible = await accessibleLessonIds();
+
+  const { data } = await supabase
+    .from('lessons')
+    .select('id, slug, order_index')
+    .eq('is_published', true)
+    .gt('order_index', current.order_index)
+    .order('order_index')
+    .limit(10);
+
+  const next = (data ?? []).find((row) => !accessible || accessible.has(row.id));
+  return next?.slug ?? null;
+}
+
 export type LessonListItem = {
   slug: string;
   title: string;

@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { unstable_cache } from 'next/cache';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /** Объём общей части — она одна для всех и составляет большую половину курса. */
@@ -24,8 +26,22 @@ export type ProfessionChoice = {
  * Числа считаются из базы, а не подписываются руками: появятся уроки —
  * цифра вырастет сама, и никто не забудет обновить подпись.
  */
-export async function getProfessionChoices(locale: string): Promise<ProfessionChoice[]> {
-  const supabase = await createSupabaseServerClient();
+export const getProfessionChoices = unstable_cache(
+  async (locale: string): Promise<ProfessionChoice[]> => getProfessionChoicesUncached(locale),
+  ['profession-choices'],
+  { revalidate: 300, tags: ['course-scope'] },
+);
+
+/*
+  Читается админ-клиентом, а не пользовательским, по двум причинам сразу.
+
+  Первая: unstable_cache не работает поверх запросов, которые читают куки, —
+  а пользовательский клиент читает их всегда. Вторая: здесь нет ничего
+  личного. Названия профессий и число уроков в каждой — витрина курса, она
+  одинакова для всех и видна ещё до регистрации.
+*/
+async function getProfessionChoicesUncached(locale: string): Promise<ProfessionChoice[]> {
+  const supabase = createSupabaseAdminClient();
 
   const [{ data: professions, error }, { data: names }, { data: modules }] = await Promise.all([
     supabase.from('professions').select('id, sort_order').eq('is_active', true).order('sort_order'),
@@ -77,8 +93,14 @@ export async function getProfessionChoices(locale: string): Promise<ProfessionCh
  * решал, что весь курс такой — хотя это только надстройка над общей частью из
  * двадцати восьми уроков. Цифра верная, подача обманывала.
  */
-export async function getCoreScope(): Promise<CoreScope> {
-  const supabase = await createSupabaseServerClient();
+export const getCoreScope = unstable_cache(
+  async (): Promise<CoreScope> => getCoreScopeUncached(),
+  ['core-scope'],
+  { revalidate: 300, tags: ['course-scope'] },
+);
+
+async function getCoreScopeUncached(): Promise<CoreScope> {
+  const supabase = createSupabaseAdminClient();
 
   const { data, error } = await supabase
     .from('modules')
