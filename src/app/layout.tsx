@@ -1,7 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { env } from '@/lib/config/env';
 
 export const metadata: Metadata = {
+  /*
+    Без metadataBase Next отдаёт относительные адреса в openGraph и canonical,
+    а соцсети и поисковики их не разворачивают: превью ссылки приходит пустым.
+  */
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: { default: 'MOVA', template: '%s' },
   description:
     'Понимай немецкого прораба на стройке. Тренажёр команд, инструментов и размеров для строителей.',

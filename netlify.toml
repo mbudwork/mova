@@ -25,9 +25,9 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    # Снять, когда сайт пойдёт в открытый доступ и на него польётся платный
-    # трафик. Пока это review-сборка — noindex остаётся.
-    # Второй слой той же защиты — src/app/robots.ts (Disallow: /).
-    X-Robots-Tag = "noindex, nofollow, noarchive"
+    # X-Robots-Tag убран: сайт открыт для поисковиков. Запрет стоял с тех пор,
+    # когда это была review-сборка, и снимать его нужно было в ДВУХ местах —
+    # здесь и в src/app/robots.ts. Одного мало: заголовок действует, даже если
+    # краулер не читал robots.txt.
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"

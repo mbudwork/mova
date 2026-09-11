@@ -8,7 +8,6 @@ import { getDiagnostic } from '@/lib/content/diagnostic';
 export const metadata: Metadata = {
   title: 'MOVA — что сказал прораб?',
   description: 'Семь настоящих команд с немецкой стройки. Две минуты, без регистрации.',
-  robots: { index: false, follow: false },
 };
 
 export const dynamic = 'force-dynamic';

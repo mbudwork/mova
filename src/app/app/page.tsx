@@ -108,6 +108,15 @@ export default async function HomePage() {
         />
       </nav>
 
+      <nav className="mt-3 space-y-3">
+        <Tile
+          href="/account/email"
+          glyph="✉"
+          title="Почта и пароль"
+          hint="Сменить адрес входа или пароль"
+        />
+      </nav>
+
       <InstallHint />
 
       {/*
