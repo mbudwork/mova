@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/Button';
 import { changeProfession, type ChangeResult } from './actions';
-import type { ProfessionChoice } from '@/lib/content/professions';
+import type { CoreScope, ProfessionChoice } from '@/lib/content/professions';
 import { withPlural, FORMS } from '@/lib/plural';
 
 function Submit({ disabled }: { disabled: boolean }) {
@@ -28,10 +28,12 @@ export function ProfessionPicker({
   choices,
   selectedIds,
   primaryId,
+  core,
 }: {
   choices: ProfessionChoice[];
   selectedIds: string[];
   primaryId: string | null;
+  core: CoreScope;
 }) {
   const [selected, setSelected] = useState<string[]>(selectedIds);
   const [primary, setPrimary] = useState<string | null>(primaryId);
@@ -48,9 +50,9 @@ export function ProfessionPicker({
     });
   }
 
-  const addedLessons = choices
-    .filter((c) => selected.includes(c.id))
-    .reduce((sum, c) => sum + c.lessons, 0);
+  const picked = choices.filter((c) => selected.includes(c.id));
+  const addedLessons = picked.reduce((sum, c) => sum + c.lessons, 0);
+  const addedPhrases = picked.reduce((sum, c) => sum + c.phrases, 0);
 
   return (
     <form action={formAction} className="space-y-3">
@@ -78,7 +80,7 @@ export function ProfessionPicker({
               <span className="block font-bold">{choice.name}</span>
               <span className="mt-0.5 block text-sm font-normal opacity-80">
                 {choice.lessons > 0
-                  ? `${withPlural(choice.lessons, FORMS.lesson)} · ${withPlural(choice.phrases, FORMS.phrase)}`
+                  ? `+${withPlural(choice.lessons, FORMS.lesson)} · +${withPlural(choice.phrases, FORMS.phrase)}`
                   : 'Своих уроков пока нет — только общая часть'}
               </span>
             </span>
@@ -89,10 +91,25 @@ export function ProfessionPicker({
         );
       })}
 
+      {/*
+        Итог складывается прямо на экране. Без него человек видел только
+        надстройку и не понимал, что покупает курс на три десятка уроков, а не
+        на четыре.
+      */}
+      <div className="notice notice-gold">
+        <span className="block font-bold">
+          Итого у тебя: {withPlural(core.lessons + addedLessons, FORMS.lesson)} ·{' '}
+          {withPlural(core.phrases + addedPhrases, FORMS.phrase)}
+        </span>
+        <span className="mt-1 block text-sm font-normal text-slate">
+          {withPlural(core.lessons, FORMS.lesson)} общей части и{' '}
+          {withPlural(addedLessons, FORMS.lesson)} по выбранным профессиям
+        </span>
+      </div>
+
       <p className="text-sm text-slate">
-        Выбрано {withPlural(selected.length, FORMS.profession)} ·{' '}
-        {withPlural(addedLessons, FORMS.lesson)} сверх общей части. Снятая профессия убирает свои
-        уроки из курса, но прогресс по её фразам сохраняется — отметишь обратно, и он вернётся.
+        Снятая профессия убирает свои уроки из курса, но прогресс по её фразам сохраняется —
+        отметишь обратно, и он вернётся.
       </p>
 
       {state?.error ? (

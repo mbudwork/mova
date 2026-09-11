@@ -2,6 +2,9 @@ import 'server-only';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
+/** Объём общей части — она одна для всех и составляет большую половину курса. */
+export type CoreScope = { lessons: number; phrases: number };
+
 export type ProfessionChoice = {
   id: string;
   name: string;
@@ -67,9 +70,47 @@ export async function getProfessionChoices(locale: string): Promise<ProfessionCh
   });
 }
 
-/** Текущая профессия пользователя, если выбрана. */
-export async function getCurrentProfessionId(): Promise<string | null> {
+/**
+ * Сколько уроков и фраз в общей части.
+ *
+ * Нужно экрану выбора профессии. Там человек видел «4 урока · 42 фразы» и
+ * решал, что весь курс такой — хотя это только надстройка над общей частью из
+ * двадцати восьми уроков. Цифра верная, подача обманывала.
+ */
+export async function getCoreScope(): Promise<CoreScope> {
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.from('profiles').select('primary_profession_id').maybeSingle();
-  return data?.primary_profession_id ?? null;
+
+  const { data, error } = await supabase
+    .from('modules')
+    .select('lessons(id, is_published, lesson_phrases(role))')
+    .eq('scope', 'core')
+    .eq('is_published', true);
+
+  if (error || !data) return { lessons: 0, phrases: 0 };
+
+  let lessons = 0;
+  let phrases = 0;
+  for (const module of data) {
+    for (const lesson of module.lessons) {
+      if (!lesson.is_published) continue;
+      lessons += 1;
+      phrases += lesson.lesson_phrases.filter((lp) => lp.role === 'primary').length;
+    }
+  }
+  return { lessons, phrases };
+}
+
+/** Профессии пользователя: весь набор и та, что отмечена основной. */
+export async function getUserProfessions(): Promise<{ ids: string[]; primaryId: string | null }> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('user_professions')
+    .select('profession_id, is_primary');
+
+  if (error || !data) return { ids: [], primaryId: null };
+
+  return {
+    ids: data.map((row) => row.profession_id),
+    primaryId: data.find((row) => row.is_primary)?.profession_id ?? data[0]?.profession_id ?? null,
+  };
 }

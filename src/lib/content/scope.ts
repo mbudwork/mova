@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { unstable_cache } from 'next/cache';
+
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export type CourseScope = {
@@ -22,7 +24,24 @@ export type CourseScope = {
  * cannot read the course tables. Only aggregate counts and profession names
  * leave this function; no content crosses the boundary.
  */
-export async function getCourseScope(): Promise<CourseScope> {
+/**
+ * Объём курса кэшируется на пять минут.
+ *
+ * Считается он четырьмя запросами с вложенными соединениями, а меняется раз в
+ * недели — когда публикуются новые уроки. Пересчитывать это на каждый показ
+ * лендинга, включая заходы поисковых роботов, значит платить за неизменные
+ * цифры сетевой задержкой в самом начале отрисовки.
+ *
+ * Пять минут, а не час: после публикации контента приятно увидеть новые числа
+ * на витрине сразу, а не после сброса кэша вручную.
+ */
+export const getCourseScope = unstable_cache(
+  async (): Promise<CourseScope> => getCourseScopeUncached(),
+  ['course-scope'],
+  { revalidate: 300, tags: ['course-scope'] },
+);
+
+async function getCourseScopeUncached(): Promise<CourseScope> {
   const { createSupabaseAdminClient } = await import('@/lib/supabase/admin');
   const admin = createSupabaseAdminClient();
 

@@ -64,9 +64,34 @@ function canonicalRedirect(request: NextRequest): NextResponse | null {
   return NextResponse.redirect(target, 307);
 }
 
+/**
+ * Страницы, где сессия не нужна вовсе: лендинг, тест, юридические тексты,
+ * robots и карта сайта.
+ *
+ * На каждый такой заход proxy ходил в Supabase за пользователем — сетевой
+ * запрос перед началом отрисовки, ради данных, которыми страница не
+ * пользуется. На лендинге это самая заметная часть задержки, потому что
+ * именно он открывается первым и по нему судят о скорости всего продукта.
+ *
+ * Безопасность от этого не страдает: proxy никогда не был защитой, каждая
+ * закрытая страница проверяет доступ сама через requireUser, а база — через
+ * RLS.
+ */
+const PUBLIC_PREFIXES = ['/ru', '/uk', '/legal', '/offline', '/robots.txt', '/sitemap.xml'];
+
+function isPublic(pathname: string): boolean {
+  if (pathname === '/') return true;
+  // Чекаут исключён намеренно: он публичный, но действие оплаты читает
+  // текущего пользователя, и свежая сессия там нужна.
+  if (pathname.endsWith('/checkout')) return false;
+  return PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 export async function proxy(request: NextRequest) {
   const canonical = canonicalRedirect(request);
   if (canonical) return canonical;
+
+  if (isPublic(request.nextUrl.pathname)) return NextResponse.next({ request });
 
   let response = NextResponse.next({ request });
 

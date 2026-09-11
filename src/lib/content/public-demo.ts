@@ -29,12 +29,39 @@ export type DemoPhrase = {
 export async function getDemoPhrase(locale: string): Promise<DemoPhrase | null> {
   const supabase = createSupabaseAdminClient();
 
+  /*
+    Случайное окно вместо всей библиотеки.
+
+    Раньше сюда прилетали все 400+ одобренных фраз с переводами — на КАЖДЫЙ
+    заход на лендинг, включая заходы ботов и поисковиков. Это заметный объём
+    по сети и по памяти ради одной показанной карточки, и именно он делал
+    первую отрисовку главной вязкой.
+
+    Теперь берётся случайное окно из двенадцати строк: одна становится
+    вопросом, две — отвлекающими вариантами. Смещение считается от общего
+    числа, поэтому окно каждый раз из другого места курса и демо остаётся
+    разным при каждом заходе.
+  */
+  const WINDOW = 12;
+
+  const { count } = await supabase
+    .from('phrases')
+    .select('id', { count: 'exact', head: true })
+    .eq('verification_status', 'approved')
+    .eq('safety_sensitive', false);
+
+  const total = count ?? 0;
+  if (total < 4) return null;
+
+  const offset = Math.max(0, Math.floor(Math.random() * Math.max(1, total - WINDOW)));
+
   const { data, error } = await supabase
     .from('phrases')
     .select('id, german_text, phrase_translations(text, language_code)')
     .eq('verification_status', 'approved')
     .eq('safety_sensitive', false)
-    .limit(400);
+    .order('external_id')
+    .range(offset, offset + WINDOW - 1);
 
   if (error || !data || data.length < 4) {
     if (error) console.error('[demo] phrase pool failed', error);
