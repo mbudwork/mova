@@ -12,6 +12,7 @@ import { Brand } from "@/components/ui/Brand";
 import { LANDING_COPY } from "@/lib/landing-copy";
 import { LANDING_SECTIONS } from "@/lib/landing-sections";
 import { landingRoutes } from "@/lib/landing-routes";
+import { plural, FORMS } from "@/lib/plural";
 import type { Locale } from "@/lib/locale";
 import { getCourseScope } from "@/lib/content/scope";
 import { getDemoPhrase } from "@/lib/content/public-demo";
@@ -111,13 +112,14 @@ export async function LandingPageContent({ locale }: { locale: Locale }) {
           {/* Числа живые: приходят из getCourseScope(), а не зашиты в макет. */}
           <div className="hero-proof">
             <span>
-              <b className="tnum">{scope.phrases}+</b> фраз
+              <b className="tnum">{scope.phrases}+</b> {plural(scope.phrases, FORMS.phrase)}
             </span>
             <span>
-              <b className="tnum">{coreCount}</b> общих команд
+              <b className="tnum">{coreCount}</b> общих {plural(coreCount, FORMS.command)}
             </span>
             <span>
-              <b className="tnum">{scope.trades.length}</b> профессий
+              <b className="tnum">{scope.trades.length}</b>{' '}
+              {plural(scope.trades.length, FORMS.profession)}
             </span>
             <span>
               <b className="tnum">{PRODUCT.price?.formatted ?? "€29"}</b> один

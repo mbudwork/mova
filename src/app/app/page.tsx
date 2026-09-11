@@ -6,6 +6,7 @@ import { Tile } from '@/components/ui/Tile';
 import { InstallHint } from '@/components/InstallHint';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireOnboarded } from '@/lib/auth/guards';
+import { withPlural, FORMS } from '@/lib/plural';
 import { getCourseProgress, getNextLessonSlug } from '@/lib/content/course';
 import { levelName } from '@/lib/levels';
 
@@ -95,13 +96,15 @@ export default async function HomePage() {
           href="/app/profession"
           glyph="🛠"
           title="Моя профессия"
-          hint="Посмотреть или поменять специальность"
+          hint="Добавить или сменить специальность"
         />
         <Tile
           href="/app/review"
           glyph="🔁"
           title="Повторить слабые фразы"
-          hint={weak > 0 ? `${weak} на повторении` : 'Пока нечего повторять'}
+          hint={
+            weak > 0 ? `${withPlural(weak, FORMS.phrase)} на повторении` : 'Пока нечего повторять'
+          }
         />
       </nav>
 

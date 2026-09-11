@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/ui/States';
 import { ButtonLink } from '@/components/ui/Button';
 import { requireOnboarded } from '@/lib/auth/guards';
 import { getLessonList } from '@/lib/content/course';
+import { withPlural, FORMS } from '@/lib/plural';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,7 +76,8 @@ export default async function LessonsPage() {
                       {lesson.title}
                     </span>
                     <span className="block text-sm text-slate">
-                      {lesson.phraseCount} фраз{lesson.completed ? ' · пройден' : ''}
+                      {withPlural(lesson.phraseCount, FORMS.phrase)}
+                      {lesson.completed ? ' · пройден' : ''}
                     </span>
                   </span>
                   <span aria-hidden className="text-xl text-mist">

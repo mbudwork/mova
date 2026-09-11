@@ -7,6 +7,7 @@ import { SELF_LEVEL_LABELS, type SelfReportedLevel } from '@/types/domain';
 import type { OnboardingResult } from '@/app/onboarding/actions';
 
 import type { ProfessionChoice } from '@/lib/content/professions';
+import { withPlural, FORMS } from '@/lib/plural';
 
 const LEVEL_ORDER: SelfReportedLevel[] = ['none', 'words', 'simple_commands', 'some_speaking'];
 
@@ -107,7 +108,7 @@ export function OnboardingFlow({
                 <span className="block">{profession.name}</span>
                 <span className="mt-0.5 block text-sm font-normal opacity-80">
                   {profession.lessons > 0
-                    ? `${profession.lessons} уроков · ${profession.phrases} фраз`
+                    ? `${withPlural(profession.lessons, FORMS.lesson)} · ${withPlural(profession.phrases, FORMS.phrase)}`
                     : 'Своих уроков пока нет — только общая часть'}
                 </span>
               </Choice>

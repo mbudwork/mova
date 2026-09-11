@@ -4,6 +4,7 @@ import { Screen, ScreenHeader } from '@/components/ui/Screen';
 import { EmptyState } from '@/components/ui/States';
 import { requireOnboarded } from '@/lib/auth/guards';
 import { getReviewSession } from '@/lib/content/course';
+import { plural, FORMS } from '@/lib/plural';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,8 +56,9 @@ export default async function ReviewPage() {
       {session.aheadOfSchedule ? (
         <p className="-mt-2 mb-4 text-slate">
           По расписанию пока ничего нет — ближайшая {untilLabel(session.nextDueAt)}. Но у тебя{' '}
-          <b className="text-cream">{session.weakTotal}</b> слабых фраз, и их можно прогнать прямо
-          сейчас. На расписание это не повлияет.
+          <b className="text-cream">{session.weakTotal}</b> {plural(session.weakTotal, FORMS.weak)}{' '}
+          {plural(session.weakTotal, FORMS.phrase)}, и их можно прогнать прямо сейчас. На
+          расписание это не повлияет.
         </p>
       ) : null}
 
