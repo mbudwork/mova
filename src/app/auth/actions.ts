@@ -147,9 +147,13 @@ export async function requestPasswordReset(
 
   const supabase = await createSupabaseServerClient();
   await supabase.auth.resetPasswordForEmail(email, {
-    // Ссылка ведёт в тот же обработчик, что и подтверждение почты: он меняет
-    // одноразовый код на сессию, и уже в ней человек задаёт новый пароль.
-    redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent('/account/password')}`,
+    // Ссылка в письме ведёт на /auth/confirm?token_hash=...&type=recovery,
+    // который сам проверяет одноразовый код через verifyOtp() и уже после
+    // этого редиректит на next. Раньше next указывал на /auth/callback —
+    // обработчик другого механизма (PKCE, ждёт параметр code), из-за чего
+    // после успешной проверки пароля человека кидало на /login?error=missing_code.
+    // next должен вести сразу на конечную страницу.
+    redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/account/password`,
   });
 
   redirect('/reset-password?sent=1');
